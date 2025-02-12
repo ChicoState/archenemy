@@ -3,3 +3,12 @@ name = "archenemy"
 version = "0.1.0"
 edition = "2024"
 
+[dependencies]
+axum = "0.8.1"
+firebase-auth = { version = "0.4.3", default-features = false, features = ["axum"] }
+serde = { version = "1.0.217", features = ["derive"] }
+shuttle-axum = "0.52.0"
+shuttle-runtime = "0.52.0"
+shuttle-shared-db = { version = "0.52.0", features = ["postgres", "sqlx"] }
+sqlx = "0.8.3"
+
