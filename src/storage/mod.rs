@@ -6,13 +6,14 @@ use axum::{
     routing::{get, put},
     Extension, Json, Router,
 };
+use firebase_auth::FirebaseAuthState;
 use s3::{creds::Credentials, Bucket};
 use std::sync::Arc;
 use uuid::Uuid;
 
 type BucketState = Arc<Bucket>;
 
-pub fn routes(access_id: &str, secret_access_key: &str) -> Router {
+pub fn routes(access_id: &str, secret_access_key: &str) -> Router<FirebaseAuthState> {
     let bucket = Bucket::new(
         "archenemy",
         "https://archenemy.nyc3.digitaloceanspaces.com"
