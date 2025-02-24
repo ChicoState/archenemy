@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+
+# Set strict error handling
+set -euo pipefail
+
+# Color definitions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to print error message and exit
+error() {
+    echo -e "${RED}Error: $1${NC}" >&2
+    exit 1
+}
+
+# Function to print info message
+info() {
+    echo -e "${BLUE}Info: $1${NC}"
+}
+
+# Function to print success message
+success() {
+    echo -e "${GREEN}Success: $1${NC}"
+}
+
+# Function to print warning message
+warning() {
+    echo -e "${YELLOW}Warning: $1${NC}"
+}
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Help message
+show_help() {
+    echo "Usage: $0 <seed-file> [options]"
+    echo
+    echo "Options:"
+    echo "  -h, --help        Show this help message"
+    echo "  -y, --yes         Skip confirmation prompts"
+    echo "  --no-clear        Skip database clearing"
+    echo
+    echo "Environment variables:"
+    echo "  DATABASE_URL      Database connection URL"
+    echo
+    echo "Example:"
+    echo "  $0 seed.sql"
+    echo "  DATABASE_URL=postgres://user:pass@localhost:5432/db $0 seed.sql -y"
+}
+
+# Process command line arguments
+SKIP_CONFIRM=0
+CLEAR_DB=1
+SEED_FILE=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -y|--yes)
+            SKIP_CONFIRM=1
+            shift
+            ;;
+        --no-clear)
+            CLEAR_DB=0
+            shift
+            ;;
+        *)
+            if [[ -z "$SEED_FILE" ]]; then
+                SEED_FILE="$1"
+            else
+                error "Unexpected argument: $1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+# Check if psql is installed
+if ! command_exists psql; then
+    error "PostgreSQL client (psql) is not installed"
+fi
+
+# Validate seed file
+if [[ -z "$SEED_FILE" ]]; then
+    show_help
+    exit 1
+fi
+
+if [[ ! -f "$SEED_FILE" ]]; then
+    error "Seed file '$SEED_FILE' not found"
+fi
+
+if [[ ! -r "$SEED_FILE" ]]; then
+    error "Cannot read seed file '$SEED_FILE'. Check permissions"
+fi
+
+# Get database URL
+if [[ -z "${DATABASE_URL:-}" ]]; then
+    read -p "Enter database URL: " DATABASE_URL
+fi
+
+if [[ -z "$DATABASE_URL" ]]; then
+    error "Database URL is required"
+fi
+
+# Test database connection
+info "Testing database connection..."
+if ! psql "$DATABASE_URL" -c '\q' >/dev/null 2>&1; then
+    error "Failed to connect to database. Please check your connection URL"
+fi
+
+# Confirm database operations
+if [[ $SKIP_CONFIRM -eq 0 ]]; then
+    if [[ $CLEAR_DB -eq 1 ]]; then
+        warning "This will clear all data in the database before seeding!"
+    fi
+    read -p "Do you want to continue? [y/N] " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        info "Operation cancelled"
+        exit 0
+    fi
+fi
+
+# Clear database if requested
+if [[ $CLEAR_DB -eq 1 ]]; then
+    info "Clearing database..."
+    psql "$DATABASE_URL" <<EOF
+DO \$\$ 
+DECLARE
+    r RECORD;
+BEGIN
+    -- Disable triggers
+    SET session_replication_role = 'replica';
+    
+    -- Drop all tables in public schema
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
+    END LOOP;
+
+    -- Reset sequences
+    FOR r IN (SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'public') LOOP
+        EXECUTE 'ALTER SEQUENCE public.' || quote_ident(r.sequence_name) || ' RESTART WITH 1';
+    END LOOP;
+
+    -- Re-enable triggers
+    SET session_replication_role = 'origin';
+END \$\$;
+EOF
+    success "Database cleared successfully"
+fi
+
+# Execute seed file
+info "Applying seed file: $SEED_FILE"
+if psql "$DATABASE_URL" < "$SEED_FILE"; then
+    success "Seed applied successfully!"
+else
+    error "Failed to apply seed file"
+fi
