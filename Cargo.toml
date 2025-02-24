@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.8.1"
+axum = { version = "0.8.1", features = ["macros", "multipart"] }
 firebase-auth = { version = "0.4.3", default-features = false, features = ["axum"] }
+rust-s3 = "0.35.1"
 serde = { version = "1.0.217", features = ["derive"] }
 shuttle-axum = "0.52.0"
 shuttle-runtime = "0.52.0"
 shuttle-shared-db = { version = "0.52.0", features = ["postgres", "sqlx"] }
 sqlx = "0.8.3"
+uuid = { version = "1.14.0", features = ["v4", "fast-rng", "serde"] }
 
