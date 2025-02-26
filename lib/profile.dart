@@ -26,7 +26,8 @@ class Profile {
 }
 
 class ProfileBoard extends StatefulWidget {
-  const ProfileBoard({super.key});
+  const ProfileBoard({super.key, required this.myProfile});
+  final Profile myProfile;
   @override
   State<ProfileBoard> createState() => _ProfileBoardState();
 }
@@ -39,7 +40,7 @@ class _ProfileBoardState extends State<ProfileBoard> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('My Profile'),
+        title: Text("Profile"),
       ),
       body: Center(
         child: Padding(
@@ -47,12 +48,17 @@ class _ProfileBoardState extends State<ProfileBoard> {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text(style: TextStyle(fontSize: 64), 'Jane Doe'),
+                  Text(style: TextStyle(fontSize: 64), widget.myProfile.name),
                   Expanded(child: Placeholder()),
-                  Text('Diskiles....'),
-                  Text('chocolate'),
-                  Text('ur mom'),
-                  Text('Chevrolet')
+                  ListView.builder(
+                      itemCount: widget.myProfile.interests.length,
+                      prototypeItem: ListTile(
+                        title: Text(widget.myProfile.interests[0]),
+                      ),
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                            title: Text(widget.myProfile.interests[index]));
+                      })
                 ])),
       ),
       floatingActionButton: FloatingActionButton(
@@ -92,6 +98,13 @@ class _EditProfileState extends State<EditProfile> {
                       labelText: 'Enter your name',
                     ),
                   ),
+                  TextFormField(
+                    expands: true,
+                    decoration: const InputDecoration(
+                      border: UnderlineInputBorder(),
+                      labelText: 'What really grinds your gears',
+                    ),
+                  )
                 ])),
       ),
     );
