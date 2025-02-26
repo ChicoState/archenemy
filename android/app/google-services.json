@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "334764402722",
+    "project_id": "archenemy-e49df",
+    "storage_bucket": "archenemy-e49df.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334764402722:android:dcf9ea585b45430125827b",
+        "android_client_info": {
+          "package_name": "com.archenemy.archenemy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "334764402722-9gjqpkca6aeqqjl864k27ccqjorlviej.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoUmtCQVWbIc_Q01RbQi69RKIPt-R9y0U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "334764402722-9gjqpkca6aeqqjl864k27ccqjorlviej.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334764402722:android:6d707c389ce6105f25827b",
+        "android_client_info": {
+          "package_name": "com.example.hatingapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "334764402722-9gjqpkca6aeqqjl864k27ccqjorlviej.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoUmtCQVWbIc_Q01RbQi69RKIPt-R9y0U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "334764402722-9gjqpkca6aeqqjl864k27ccqjorlviej.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
