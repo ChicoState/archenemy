@@ -1,50 +1,37 @@
-
-
 import 'dart:convert';
-
-class Profile {
-	
-	String name;
-	DateTime birthDate;
-	String bio;
-	List<String> interests;
-	
-	Profile(this.name, this.birthDate, this.bio, this.interests);
-	
-	// Not a particularly great implementation
-	factory Profile.fromJson(String raw) {
-		try {
-			var map = json.decode(raw);
-			return Profile(
-				map.name,
-				DateTime.parse(map.birthDate),
-				map.bio,
-				map.interests
-			);
-		} catch(err) {
-			print("Profile JSON parsing error: $err");
-			rethrow;
-		}
-	}
-	String toJson() {
-		return json.encode({
-			name,
-			birthDate,
-			bio,
-			interests
-		});
-	}
-}
-
 import 'package:flutter/material.dart';
 
-class Profile extends StatefulWidget {
-  const Profile({super.key});
-  @override
-  State<Profile> createState() => _ProfileState();
+class Profile {
+  String name;
+  DateTime birthDate;
+  String bio;
+  List<String> interests;
+
+  Profile(this.name, this.birthDate, this.bio, this.interests);
+
+  // Not a particularly great implementation
+  factory Profile.fromJson(String raw) {
+    try {
+      var map = json.decode(raw);
+      return Profile(
+          map.name, DateTime.parse(map.birthDate), map.bio, map.interests);
+    } catch (err) {
+      print("Profile JSON parsing error: $err");
+      rethrow;
+    }
+  }
+  String toJson() {
+    return json.encode({name, birthDate, bio, interests});
+  }
 }
 
-class _ProfileState extends State<Profile> {
+class ProfileBoard extends StatefulWidget {
+  const ProfileBoard({super.key});
+  @override
+  State<ProfileBoard> createState() => _ProfileBoardState();
+}
+
+class _ProfileBoardState extends State<ProfileBoard> {
   @override
   Widget build(BuildContext context) {
     //return Placeholder();
