@@ -97,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Profile()));
+              context, MaterialPageRoute(builder: (context) => ProfileBoard()));
         },
         tooltip: 'My Profile',
         child: const Icon(Icons.person),
