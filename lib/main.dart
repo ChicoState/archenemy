@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:hatingapp/profile.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+  late final Profile userProfile = Profile(
+      "Jane Doe", DateTime.now(), "My bio", List<String>.from(["one", "two"]));
+
+  // void initState() {
+  //   userProfile = Profile("Jane Doe", DateTime.now(), "My bio",
+  //       List<String>.from(["one", "two"]));
+  // }
 
   // This widget is the root of your application.
   @override
@@ -14,32 +21,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(
+        title: 'Flutter Demo Home Page',
+        userProfile: userProfile,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
+  MyHomePage({super.key, required this.title, required this.userProfile});
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -50,7 +44,7 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
-
+  final Profile userProfile;
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -97,7 +91,11 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => ProfileBoard()));
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ProfileBoard(
+                        myProfile: widget.userProfile,
+                      )));
         },
         tooltip: 'My Profile',
         child: const Icon(Icons.person),

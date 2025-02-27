@@ -50,15 +50,20 @@ class _ProfileBoardState extends State<ProfileBoard> {
                 children: <Widget>[
                   Text(style: TextStyle(fontSize: 64), widget.myProfile.name),
                   Expanded(child: Placeholder()),
-                  ListView.builder(
-                      itemCount: widget.myProfile.interests.length,
-                      prototypeItem: ListTile(
-                        title: Text(widget.myProfile.interests[0]),
-                      ),
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                            title: Text(widget.myProfile.interests[index]));
-                      })
+                  Container(
+                    height: MediaQuery.sizeOf(context).height / 4,
+                    width: MediaQuery.sizeOf(context).width,
+                    padding: EdgeInsets.all(16.0),
+                    child: ListView.builder(
+                        itemCount: widget.myProfile.interests.length,
+                        prototypeItem: ListTile(
+                          title: Text(widget.myProfile.interests[0]),
+                        ),
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                              title: Text(widget.myProfile.interests[index]));
+                        }),
+                  )
                 ])),
       ),
       floatingActionButton: FloatingActionButton(
