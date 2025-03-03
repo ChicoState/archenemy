@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class Profile {
   String name;
@@ -84,6 +85,21 @@ class EditProfile extends StatefulWidget {
 }
 
 class _EditProfileState extends State<EditProfile> {
+  DateTime? selectedDate;
+
+  Future<void> _selectDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2021, 7, 25),
+      firstDate: DateTime(2021),
+      lastDate: DateTime(2022),
+    );
+
+    setState(() {
+      selectedDate = pickedDate;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,12 +120,21 @@ class _EditProfileState extends State<EditProfile> {
                     ),
                   ),
                   TextFormField(
-                    expands: true,
+                    minLines: 1,
+                    maxLines: 10,
+                    maxLength: 1000,
                     decoration: const InputDecoration(
                       border: UnderlineInputBorder(),
                       labelText: 'What really grinds your gears',
                     ),
-                  )
+                  ),
+                  Text(
+                    selectedDate != null
+                        ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                        : 'No date selected',
+                  ),
+                  TextButton(
+                      onPressed: _selectDate, child: const Text("Birthday")),
                 ])),
       ),
     );
