@@ -90,9 +90,9 @@ class _EditProfileState extends State<EditProfile> {
   Future<void> _selectDate() async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime(2021, 7, 25),
-      firstDate: DateTime(2021),
-      lastDate: DateTime(2022),
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1000),
+      lastDate: DateTime.now(),
     );
 
     setState(() {
