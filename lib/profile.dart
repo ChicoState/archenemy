@@ -10,6 +10,12 @@ class Profile {
 
   Profile(this.name, this.birthDate, this.bio, this.interests);
 
+  void update(String name_, DateTime birthDate_, String bio_) {
+    name = name_;
+    birthDate = birthDate_;
+    bio = bio_;
+  }
+
   // Not a particularly great implementation
   factory Profile.fromJson(String raw) {
     try {
@@ -70,7 +76,11 @@ class _ProfileBoardState extends State<ProfileBoard> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => EditProfile()));
+              context,
+              MaterialPageRoute(
+                  builder: (context) => EditProfile(
+                        myProfile: widget.myProfile,
+                      )));
         },
         child: const Icon(Icons.manage_accounts),
       ),
@@ -79,13 +89,16 @@ class _ProfileBoardState extends State<ProfileBoard> {
 }
 
 class EditProfile extends StatefulWidget {
-  const EditProfile({super.key});
+  const EditProfile({super.key, required this.myProfile});
+  final Profile myProfile;
   @override
   State<EditProfile> createState() => _EditProfileState();
 }
 
 class _EditProfileState extends State<EditProfile> {
-  DateTime? selectedDate;
+  DateTime? selectedDate = DateTime.now();
+  String? enteredName = "name";
+  String? enteredBio = "bio";
 
   Future<void> _selectDate() async {
     final DateTime? pickedDate = await showDatePicker(
@@ -118,6 +131,11 @@ class _EditProfileState extends State<EditProfile> {
                       border: UnderlineInputBorder(),
                       labelText: 'Enter your name',
                     ),
+                    onSaved: (String? val) {
+                      setState(() {
+                        enteredName = val;
+                      });
+                    },
                   ),
                   TextFormField(
                     minLines: 1,
@@ -127,6 +145,9 @@ class _EditProfileState extends State<EditProfile> {
                       border: UnderlineInputBorder(),
                       labelText: 'What really grinds your gears',
                     ),
+                    onSaved: (String? val) {
+                      enteredBio = val;
+                    },
                   ),
                   Text(
                     selectedDate != null
@@ -135,6 +156,56 @@ class _EditProfileState extends State<EditProfile> {
                   ),
                   TextButton(
                       onPressed: _selectDate, child: const Text("Birthday")),
+                  TextButton(
+                    onPressed: () {
+                      if (enteredName == null) {
+                        final nameSnackBar = SnackBar(
+                          content: const Text('Please enter your name'),
+                          action: SnackBarAction(
+                            label: 'Undo',
+                            onPressed: () {
+                              // Some code to undo the change.
+                            },
+                          ),
+                        );
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(nameSnackBar);
+                      } else if (enteredBio == null) {
+                        final bioSnackBar = SnackBar(
+                          content:
+                              const Text('please enter your pio information'),
+                          action: SnackBarAction(
+                            label: 'Undo',
+                            onPressed: () {
+                              // Some code to undo the change.
+                            },
+                          ),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(bioSnackBar);
+                      } else if (selectedDate == null) {
+                        final dateSnackBar = SnackBar(
+                          content: const Text('Please select your birthday'),
+                          action: SnackBarAction(
+                            label: 'Undo',
+                            onPressed: () {
+                              // Some code to undo the change.
+                            },
+                          ),
+                        );
+
+                        // Find the ScaffoldMessenger in the widget tree
+                        // and use it to show a SnackBar.
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(dateSnackBar);
+                      } else {
+                        widget.myProfile.update(
+                            enteredName ?? "Jane doe",
+                            selectedDate ?? DateTime.now(),
+                            enteredBio ?? "bio");
+                      }
+                    },
+                    child: Text('Save'),
+                  )
                 ])),
       ),
     );
