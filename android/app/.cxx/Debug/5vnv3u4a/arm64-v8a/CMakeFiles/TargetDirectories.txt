@@ -1,0 +1,2 @@
+C:/Users/erikg/hatingapp/android/app/.cxx/Debug/5vnv3u4a/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/erikg/hatingapp/android/app/.cxx/Debug/5vnv3u4a/arm64-v8a/CMakeFiles/rebuild_cache.dir
