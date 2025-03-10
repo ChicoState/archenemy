@@ -26,9 +26,10 @@ GET /user/me
 {
   "id": "string",
   "username": "string",
-  "display_name": "string",
+  "display_name": "string|null",
   "avatar_url": "string",
   "bio": "string",
+  "embedding": "float[]|null",
   "created_at": "timestamp",
   "updated_at": "timestamp"
 }
@@ -49,9 +50,10 @@ GET /user/{userID}
 {
   "id": "string",
   "username": "string",
-  "display_name": "string",
+  "display_name": "string|null",
   "avatar_url": "string",
   "bio": "string",
+  "embedding": "float[]|null",
   "created_at": "timestamp",
   "updated_at": "timestamp"
 }
@@ -77,9 +79,10 @@ Content-Type: application/json
 {
   "id": "string",
   "username": "string",
-  "display_name": "string",
+  "display_name": "string|null",
   "avatar_url": "string",
   "bio": "string",
+  "embedding": "float[]|null",
   "created_at": "timestamp",
   "updated_at": "timestamp"
 }
@@ -98,7 +101,7 @@ GET /tags
 ```json
 [
   {
-    "name": "string",
+    "tag_name": "string",
     "user_count": "integer"
   }
 ]
@@ -118,6 +121,8 @@ GET /user/{userID}/tags
 ```json
 [
   {
+    "id": "integer",
+    "user_id": "string",
     "tag_name": "string",
     "created_at": "timestamp"
   }
@@ -183,7 +188,10 @@ GET /enemies/discover
     "bio": "string",
     "tags": [
       {
-        "tag_name": "string"
+        "id": "integer",
+        "user_id": "string",
+        "tag_name": "string",
+        "created_at": "timestamp"
       }
     ],
     "created_at": "timestamp",
@@ -251,16 +259,15 @@ Content-Type: application/json
 
 #### Response
 ```json
-{
-  "user_id": "string",
-  "target_user_id": "string",
-  "tags": [
-    {
-      "tag_name": "string",
-      "created_at": "timestamp"
-    }
-  ]
-}
+[
+  {
+    "id": "integer",
+    "user_id": "string",
+    "target_user_id": "string",
+    "tag_name": "string",
+    "created_at": "timestamp"
+  }
+]
 ```
 
 ### Get Liked Users
@@ -315,7 +322,11 @@ GET /enemies/dislikes
     "disliked_at": "timestamp",
     "dislike_tags": [
       {
-        "tag_name": "string"
+        "id": "integer",
+        "user_id": "string",
+        "target_user_id": "string",
+        "tag_name": "string",
+        "created_at": "timestamp"
       }
     ]
   }
@@ -398,9 +409,10 @@ All error responses follow this format:
 {
   "id": "string",
   "username": "string",
-  "display_name": "string",
+  "display_name": "string|null",
   "avatar_url": "string",
   "bio": "string",
+  "embedding": "float[]|null",
   "created_at": "timestamp",
   "updated_at": "timestamp"
 }
@@ -409,7 +421,7 @@ All error responses follow this format:
 ### Tag
 ```json
 {
-  "name": "string",
+  "tag_name": "string",
   "user_count": "integer"
 }
 ```
