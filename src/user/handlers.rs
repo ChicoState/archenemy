@@ -345,4 +345,3 @@ pub async fn get_disliked_users(
 
     Ok(Json(result))
 }
-
