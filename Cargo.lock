@@ -60,6 +60,7 @@ dependencies = [
  "axum",
  "firebase-auth",
  "pgvector",
+ "rand 0.9.0",
  "rust-s3",
  "serde",
  "shuttle-axum",

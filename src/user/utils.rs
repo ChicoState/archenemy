@@ -25,11 +25,14 @@ pub async fn create_user(pool: &PgPool, user: &CreateUserRequest) -> Result<User
     let avatar_url = user.avatar_url.clone().unwrap_or(
         Url::raw("https://archenemy.nyc3.digitaloceanspaces.com/default.jpeg".to_string())
     );
+    
+    // Generate a random embedding for the user
+    let embedding = generate_random_embedding();
 
     let result = sqlx::query_as::<_, User>(
         r#"
-        INSERT INTO Users (id, username, display_name, avatar_url, bio)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO Users (id, username, display_name, avatar_url, bio, embedding)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
         "#,
     )
@@ -38,6 +41,7 @@ pub async fn create_user(pool: &PgPool, user: &CreateUserRequest) -> Result<User
     .bind(&user.display_name)
     .bind(&avatar_url)
     .bind(&user.bio)
+    .bind(&embedding)
     .fetch_one(pool)
     .await?;
 
@@ -72,6 +76,9 @@ pub async fn update_user(pool: &PgPool, id: &str, update: &UpdateUserRequest) ->
 
     let query = builder.build_query_as();
     let result = query.fetch_one(pool).await?;
+    
+    // Update user's embedding after profile changes
+    let _ = update_user_embedding(pool, id).await;
 
     Ok(result)
 }
@@ -129,6 +136,9 @@ pub async fn add_user_tag(pool: &PgPool, user_id: &str, tag_name: &str) -> Resul
     sqlx::query("REFRESH MATERIALIZED VIEW tag_counts")
         .execute(pool)
         .await?;
+        
+    // Update user's embedding after adding tag
+    let _ = update_user_embedding(pool, user_id).await;
 
     Ok(result)
 }
@@ -149,6 +159,9 @@ pub async fn remove_user_tag(pool: &PgPool, user_id: &str, tag_name: &str) -> Re
     sqlx::query("REFRESH MATERIALIZED VIEW tag_counts")
         .execute(pool)
         .await?;
+        
+    // Update user's embedding after tag change
+    let _ = update_user_embedding(pool, user_id).await;
 
     Ok(())
 }
@@ -398,4 +411,39 @@ pub async fn get_potential_enemies(
 pub fn generate_random_username() -> String {
     let uuid = Uuid::new_v4();
     format!("user_{}", uuid.simple())
+}
+
+// Generate a random embedding vector for MVP purposes
+// This simulates a 384-dimensional embedding from all-MiniLM-L6-v2
+pub fn generate_random_embedding() -> Vec<f32> {
+    use rand::Rng;
+    let mut rng = rand::thread_rng();
+    
+    // Create a 384-dimensional embedding vector with random values between -1.0 and 1.0
+    const EMBEDDING_DIM: usize = 384;
+    (0..EMBEDDING_DIM).map(|_| rng.gen_range(-1.0..1.0)).collect()
+}
+
+// Update a user's embedding
+// For MVP purposes this just generates a new random embedding
+// In a production app, this would use the user's profile data and tags
+// to generate a more meaningful embedding
+pub async fn update_user_embedding(pool: &PgPool, user_id: &str) -> Result<()> {
+    // Generate a new random embedding
+    let embedding = generate_random_embedding();
+    
+    // Update the user's embedding in the database
+    sqlx::query(
+        r#"
+        UPDATE Users 
+        SET embedding = $1, updated_at = NOW()
+        WHERE id = $2
+        "#,
+    )
+    .bind(&embedding)
+    .bind(user_id)
+    .execute(pool)
+    .await?;
+    
+    Ok(())
 }
