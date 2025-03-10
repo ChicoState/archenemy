@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "19652774985",
+    "project_id": "archenemy-9623a",
+    "storage_bucket": "archenemy-9623a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19652774985:android:a2e434b764240a0b18c398",
+        "android_client_info": {
+          "package_name": "com.example.hatingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmWAyvxw62sPVGd7zEGJtzL3Kb2ufCYM0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19652774985:android:1be96d87444e5c8c18c398",
+        "android_client_info": {
+          "package_name": "com.softdevproj.archenemy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmWAyvxw62sPVGd7zEGJtzL3Kb2ufCYM0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
