@@ -4,6 +4,7 @@
 
 -- Drop indexes first
 DROP INDEX IF EXISTS users_embedding_idx;
+DROP INDEX IF EXISTS tags_embedding_idx;
 DROP INDEX IF EXISTS idx_userdisliketags_tag_name;
 DROP INDEX IF EXISTS idx_userdisliketags_target_user_id;
 DROP INDEX IF EXISTS idx_userdisliketags_user_id;
@@ -15,6 +16,9 @@ DROP INDEX IF EXISTS idx_usertags_user_id;
 
 -- Drop the materialized view
 DROP MATERIALIZED VIEW IF EXISTS tag_counts;
+
+-- Remove embedding column from Tags
+ALTER TABLE Tags DROP COLUMN IF EXISTS embedding;
 
 -- Drop UserDislikeTags table
 DROP TABLE IF EXISTS UserDislikeTags;

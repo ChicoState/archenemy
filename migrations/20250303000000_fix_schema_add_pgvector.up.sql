@@ -46,7 +46,10 @@ ALTER TABLE UserDislikes
     FOREIGN KEY (target_user_id) REFERENCES Users(id) ON DELETE CASCADE;
 
 -- Add embedding vector to Users table for recommendation system
-ALTER TABLE Users ADD COLUMN IF NOT EXISTS embedding vector(1536);
+ALTER TABLE Users ADD COLUMN IF NOT EXISTS embedding vector(384);
+
+-- Add embedding vector to Tags table for semantic tag matching
+ALTER TABLE Tags ADD COLUMN IF NOT EXISTS embedding vector(384);
 
 -- Add timestamps to track when records were created and updated
 ALTER TABLE Users 
@@ -108,6 +111,7 @@ CREATE INDEX idx_userdisliketags_user_id ON UserDislikeTags(user_id);
 CREATE INDEX idx_userdisliketags_target_user_id ON UserDislikeTags(target_user_id);
 CREATE INDEX idx_userdisliketags_tag_name ON UserDislikeTags(tag_name);
 
--- Create index for vector similarity search
+-- Create indexes for vector similarity search
 CREATE INDEX users_embedding_idx ON Users USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX tags_embedding_idx ON Tags USING hnsw (embedding vector_cosine_ops);
 

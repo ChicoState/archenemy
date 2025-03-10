@@ -16,6 +16,7 @@ pub fn routes() -> Router<ArchenemyState> {
         .route("/user/me", patch(handlers::update_current_user))
         // Tag routes
         .route("/tags", get(handlers::get_all_tags))
+        .route("/tags/:tag_name/nemesis", get(handlers::get_nemesis_tags))
         .route("/user/:user_id/tags", get(handlers::get_user_tags))
         .route("/user/me/tags", post(handlers::add_user_tag))
         .route("/user/me/tags/:tag_name", delete(handlers::remove_user_tag))

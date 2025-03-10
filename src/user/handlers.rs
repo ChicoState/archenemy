@@ -55,6 +55,12 @@ pub struct AddTagsRequest {
     tag_names: Vec<String>,
 }
 
+#[derive(Debug, Serialize)]
+pub struct NemesisTag {
+    tag_name: String,
+    nemesis_score: f32,
+}
+
 // User Handlers
 #[axum::debug_handler]
 pub async fn get_current_user(
@@ -130,6 +136,28 @@ pub async fn get_all_tags(
 ) -> Result<Json<Vec<TagCount>>, Error> {
     let tags = utils::get_all_tags(&state.pool).await?;
     Ok(Json(tags))
+}
+
+// Get nemesis tags (semantically opposite tags)
+pub async fn get_nemesis_tags(
+    State(state): State<ArchenemyState>,
+    _user: FirebaseUser, // Ensure authenticated
+    Path(tag_name): Path<String>,
+    Query(pagination): Query<PaginationParams>,
+) -> Result<Json<Vec<NemesisTag>>, Error> {
+    let limit = pagination.limit.unwrap_or(10);
+    let nemesis_tags = utils::get_nemesis_tags(&state.pool, &tag_name, limit).await?;
+    
+    // Convert to NemesisTag format
+    let formatted_tags = nemesis_tags
+        .into_iter()
+        .map(|(tag_name, nemesis_score)| NemesisTag {
+            tag_name,
+            nemesis_score,
+        })
+        .collect();
+    
+    Ok(Json(formatted_tags))
 }
 
 pub async fn get_user_tags(

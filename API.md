@@ -487,6 +487,31 @@ The following environment variables are required (it should be loaded by rocket)
 - Authentication middleware is in place but currently passes all requests (placeholder for future implementation)
 - User embeddings are 1536-dimensional vectors used for similarity matching
 
+## Tag Embeddings API
+
+### Get Nemesis Tags
+Get tags that are semantically opposite to a given tag (using vector embeddings). (Authentication required)
+
+```http
+GET /tags/{tagName}/nemesis
+```
+
+#### Parameters
+- `tagName`: The name of the tag to find semantic opposites for
+
+#### Query Parameters
+- `limit`: Maximum number of results to return (default: 10)
+
+#### Response
+```json
+[
+  {
+    "tag_name": "string",
+    "nemesis_score": "float"
+  }
+]
+```
+
 ## Future Enhancements
 - [ ] Implement file type validation
 - [ ] Add file size limits
@@ -495,6 +520,7 @@ The following environment variables are required (it should be loaded by rocket)
 - [ ] Implement proper authentication checks
 - [ ] Add file metadata support
 - [ ] Add mutual nemesis discovery
-- [ ] Implement recommendation system based on embeddings
+- [x] Implement recommendation system based on embeddings
 - [ ] Add pagination for list endpoints
 - [ ] Create admin endpoints for moderation
+- [ ] Improve nemesis tag discovery algorithm

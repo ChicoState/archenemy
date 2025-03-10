@@ -22,10 +22,10 @@ pub async fn get_user_by_id(pool: &PgPool, id: &str) -> Result<Option<User>> {
 }
 
 pub async fn create_user(pool: &PgPool, user: &CreateUserRequest) -> Result<User> {
-    let avatar_url = user.avatar_url.clone().unwrap_or(
-        Url::raw("https://archenemy.nyc3.digitaloceanspaces.com/default.jpeg".to_string())
-    );
-    
+    let avatar_url = user.avatar_url.clone().unwrap_or(Url::raw(
+        "https://archenemy.nyc3.digitaloceanspaces.com/default.jpeg".to_string(),
+    ));
+
     // Generate a random embedding for the user
     let embedding = generate_random_embedding();
 
@@ -76,7 +76,7 @@ pub async fn update_user(pool: &PgPool, id: &str, update: &UpdateUserRequest) ->
 
     let query = builder.build_query_as();
     let result = query.fetch_one(pool).await?;
-    
+
     // Update user's embedding after profile changes
     let _ = update_user_embedding(pool, id).await;
 
@@ -94,6 +94,62 @@ pub async fn get_all_tags(pool: &PgPool) -> Result<Vec<TagCount>> {
     Ok(tags)
 }
 
+// Get semantically opposite tags (nemesis tags) based on embedding similarity
+pub async fn get_nemesis_tags(
+    pool: &PgPool,
+    tag_name: &str,
+    limit: i64,
+) -> Result<Vec<(String, f32)>> {
+    // Get the embedding for the specified tag
+    let tag_embedding = sqlx::query_as::<_, (Vec<f32>,)>(
+        r#"
+        SELECT embedding FROM Tags WHERE name = $1
+        "#,
+    )
+    .bind(tag_name)
+    .fetch_optional(pool)
+    .await?;
+
+    // If the tag exists and has an embedding
+    if let Some((embedding,)) = tag_embedding {
+        // Create opposite embedding by negating each value
+        let opposite_embedding: Vec<f32> = embedding.iter().map(|&val| -val).collect();
+
+        // Find opposite tags using cosine similarity with the negated embedding
+        // The closer to 1.0, the more opposite the tag is semantically
+        let results = sqlx::query_as::<_, (String, f32)>(
+            r#"
+                SELECT 
+                    name, 
+                    embedding <=> $1 as nemesis_score
+                FROM 
+                    Tags
+                WHERE 
+                    name != $2 AND embedding IS NOT NULL
+                ORDER BY 
+                    embedding <=> $1
+                LIMIT $3
+                "#,
+        )
+        .bind(&opposite_embedding as &[f32])
+        .bind(tag_name)
+        .bind(limit)
+        .fetch_all(pool)
+        .await?;
+
+        // Convert to (String, f32) tuples
+        let nemesis_tags = results
+            .into_iter()
+            .map(|record| (record.0, record.1))
+            .collect();
+
+        return Ok(nemesis_tags);
+    }
+
+    // Tag doesn't exist or has no embedding
+    Ok(Vec::new())
+}
+
 pub async fn get_user_tags(pool: &PgPool, user_id: &str) -> Result<Vec<UserTag>> {
     let tags = sqlx::query_as::<_, UserTag>(
         "SELECT * FROM UserTags WHERE user_id = $1 ORDER BY created_at DESC",
@@ -106,15 +162,19 @@ pub async fn get_user_tags(pool: &PgPool, user_id: &str) -> Result<Vec<UserTag>>
 }
 
 pub async fn add_user_tag(pool: &PgPool, user_id: &str, tag_name: &str) -> Result<UserTag> {
-    // First ensure the tag exists in the Tags table
+    // Generate tag embedding
+    let tag_embedding = generate_tag_embedding(tag_name);
+
+    // First ensure the tag exists in the Tags table with embedding
     sqlx::query(
         r#"
-        INSERT INTO Tags (name)
-        VALUES ($1)
-        ON CONFLICT (name) DO NOTHING
+        INSERT INTO Tags (name, embedding)
+        VALUES ($1, $2)
+        ON CONFLICT (name) DO UPDATE SET embedding = $2 WHERE Tags.embedding IS NULL
         "#,
     )
     .bind(tag_name)
+    .bind(&tag_embedding)
     .execute(pool)
     .await?;
 
@@ -136,7 +196,7 @@ pub async fn add_user_tag(pool: &PgPool, user_id: &str, tag_name: &str) -> Resul
     sqlx::query("REFRESH MATERIALIZED VIEW tag_counts")
         .execute(pool)
         .await?;
-        
+
     // Update user's embedding after adding tag
     let _ = update_user_embedding(pool, user_id).await;
 
@@ -159,7 +219,7 @@ pub async fn remove_user_tag(pool: &PgPool, user_id: &str, tag_name: &str) -> Re
     sqlx::query("REFRESH MATERIALIZED VIEW tag_counts")
         .execute(pool)
         .await?;
-        
+
     // Update user's embedding after tag change
     let _ = update_user_embedding(pool, user_id).await;
 
@@ -343,7 +403,29 @@ pub async fn get_potential_nemeses(
     limit: i64,
     offset: i64,
 ) -> Result<Vec<(User, f32)>> {
-    // This query finds users with the least tag overlap and who aren't already liked/disliked
+    // First, get the current user's embedding
+    let current_user = get_user_by_id(pool, user_id)
+        .await?
+        .ok_or_else(|| Error::NotFound {
+            resource: format!("User with ID {}", user_id),
+        })?;
+
+    // If the user doesn't have an embedding, generate one
+    let current_embedding = match current_user.embedding {
+        Some(embed) => embed,
+        None => {
+            // Generate and update embedding
+            let embedding = generate_random_embedding();
+            update_user_embedding(pool, user_id).await?;
+            embedding
+        }
+    };
+
+    // Create the opposite embedding for nemesis matching
+    let opposite_embedding: Vec<f32> = current_embedding.iter().map(|&val| -val).collect();
+
+    // This query finds users based on embedding similarity and tag overlap
+    // Higher score = better nemesis match (more opposite)
     let results = sqlx::query_as::<_, (User, f32)>(
         r#"
         WITH user_tags AS (
@@ -355,24 +437,36 @@ pub async fn get_potential_nemeses(
         user_dislikes AS (
             SELECT target_user_id FROM UserDislikes WHERE user_id = $1
         ),
-        tag_match_scores AS (
+        -- Calculate combined score based on embedding similarity and tag overlap
+        user_scores AS (
             SELECT 
                 u.id,
                 (
-                    -- Calculate a compatibility score where lower means more incompatible
-                    -- Count the number of matching tags (negative impact on score)
-                    -COALESCE((
+                    -- Embedding similarity component - using opposite embedding for nemesis matching
+                    -- Higher score = better nemesis match (more opposite)
+                    CASE
+                        WHEN u.embedding IS NOT NULL THEN 
+                            -- Compare with negative embedding to find semantic opposites
+                            -- Scale to 0-1 range where 1 = perfect nemesis
+                            (1 - (u.embedding <=> $4::vector) / 2)
+                        ELSE 0.5 -- Default middle value if no embedding
+                    END * 0.7 -- 70% weight for embedding
+
+                    +
+                    
+                    -- Tag overlap component (lower = more overlap, we want the opposite)
+                    -- Count percentage of non-matching tags
+                    (1 - COALESCE((
                         SELECT COUNT(*)::float 
                         FROM UserTags ut
                         WHERE ut.user_id = u.id AND ut.tag_name IN (SELECT tag_name FROM user_tags)
                     ), 0) / 
-                    -- Normalize by total tags
                     NULLIF((
                         SELECT COUNT(*)::float 
                         FROM UserTags 
                         WHERE user_id = u.id
-                    ), 0)
-                ) AS compatibility_score
+                    ), 1)) * 0.3 -- 30% weight for tags
+                ) AS nemesis_score
             FROM 
                 Users u
             WHERE 
@@ -380,20 +474,21 @@ pub async fn get_potential_nemeses(
                 AND u.id NOT IN (SELECT target_user_id FROM user_likes)
                 AND u.id NOT IN (SELECT target_user_id FROM user_dislikes)
         )
+        
         SELECT 
             u.*, 
-            COALESCE(tms.compatibility_score, 0) AS compatibility_score
+            COALESCE(us.nemesis_score, 0.5) AS compatibility_score
         FROM 
             Users u
         LEFT JOIN 
-            tag_match_scores tms ON u.id = tms.id
+            user_scores us ON u.id = us.id
         WHERE 
             u.id != $1
             AND u.id NOT IN (SELECT target_user_id FROM user_likes)
             AND u.id NOT IN (SELECT target_user_id FROM user_dislikes)
         ORDER BY 
-            -- Order by compatibility score (lowest first = most incompatible)
-            compatibility_score ASC
+            -- Order by nemesis score (highest first = most incompatible)
+            compatibility_score DESC
         LIMIT $2
         OFFSET $3
         "#,
@@ -401,6 +496,7 @@ pub async fn get_potential_nemeses(
     .bind(user_id)
     .bind(limit)
     .bind(offset)
+    .bind(&opposite_embedding)  // Using opposite embedding for nemesis matching
     .fetch_all(pool)
     .await?;
 
@@ -413,25 +509,135 @@ pub fn generate_random_username() -> String {
     format!("user_{}", uuid.simple())
 }
 
+// Constants
+const EMBEDDING_DIM: usize = 384;
+
 // Generate a random embedding vector for MVP purposes
 // This simulates a 384-dimensional embedding from all-MiniLM-L6-v2
 pub fn generate_random_embedding() -> Vec<f32> {
     use rand::Rng;
-    let mut rng = rand::thread_rng();
-    
+    let mut rng = rand::rng();
+
     // Create a 384-dimensional embedding vector with random values between -1.0 and 1.0
-    const EMBEDDING_DIM: usize = 384;
-    (0..EMBEDDING_DIM).map(|_| rng.gen_range(-1.0..1.0)).collect()
+    // This must match the dimension in the database (vector(384))
+
+    // Generate random values and normalize to unit vector (required for cosine similarity)
+    let random_values: Vec<f32> = (0..EMBEDDING_DIM)
+        .map(|_| rng.random_range(-1.0..1.0))
+        .collect();
+
+    // Calculate the magnitude of the vector
+    let magnitude: f32 = random_values
+        .iter()
+        .map(|&val| val * val)
+        .sum::<f32>()
+        .sqrt();
+
+    // Normalize the vector (divide each element by the magnitude)
+    if magnitude > 0.0 {
+        random_values.iter().map(|&val| val / magnitude).collect()
+    } else {
+        // Fallback in case of zero magnitude (shouldn't happen with random values)
+        random_values
+    }
+}
+
+// Generate a tag embedding based on the tag name
+// In a real implementation, this would use a text embedding model
+pub fn generate_tag_embedding(tag_name: &str) -> Vec<f32> {
+    use rand::rngs::StdRng;
+    use rand::{Rng, SeedableRng};
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    // Create a deterministic seed from the tag name so the same tag
+    // always gets the same embedding (this is important for consistency)
+    let mut hasher = DefaultHasher::new();
+    tag_name.hash(&mut hasher);
+    let seed = hasher.finish();
+
+    // Create a deterministic random number generator
+    let mut rng = StdRng::seed_from_u64(seed);
+
+    // Generate deterministic random values
+    let random_values: Vec<f32> = (0..EMBEDDING_DIM)
+        .map(|_| rng.random_range(-1.0..1.0))
+        .collect();
+
+    // Normalize the vector
+    let magnitude: f32 = random_values
+        .iter()
+        .map(|&val| val * val)
+        .sum::<f32>()
+        .sqrt();
+
+    if magnitude > 0.0 {
+        random_values.iter().map(|&val| val / magnitude).collect()
+    } else {
+        random_values
+    }
 }
 
 // Update a user's embedding
-// For MVP purposes this just generates a new random embedding
-// In a production app, this would use the user's profile data and tags
-// to generate a more meaningful embedding
+// This creates an embedding based on the user's tags
 pub async fn update_user_embedding(pool: &PgPool, user_id: &str) -> Result<()> {
-    // Generate a new random embedding
-    let embedding = generate_random_embedding();
-    
+    // Get all of the user's tags
+    let user_tags = get_user_tags(pool, user_id).await?;
+
+    let embedding = if user_tags.is_empty() {
+        // If user has no tags, use a random embedding
+        generate_random_embedding()
+    } else {
+        // Get tag embeddings
+        let mut tag_embeddings = Vec::new();
+
+        for tag in &user_tags {
+            // Get or generate tag embedding
+            let tag_embedding = sqlx::query_as::<_, (Option<Vec<f32>>,)>(
+                "SELECT embedding FROM Tags WHERE name = $1",
+            )
+            .bind(&tag.tag_name)
+            .fetch_one(pool)
+            .await?;
+
+            if let (Some(embedding),) = tag_embedding {
+                tag_embeddings.push(embedding);
+            } else {
+                // If tag doesn't have an embedding, generate one
+                let generated = generate_tag_embedding(&tag.tag_name);
+                tag_embeddings.push(generated.clone());
+
+                // Update tag with embedding
+                sqlx::query("UPDATE Tags SET embedding = $1 WHERE name = $2")
+                    .bind(&generated)
+                    .bind(&tag.tag_name)
+                    .execute(pool)
+                    .await?;
+            }
+        }
+
+        // Average the tag embeddings
+        let mut avg_embedding = vec![0.0; EMBEDDING_DIM];
+        for tag_embedding in &tag_embeddings {
+            for (i, &val) in tag_embedding.iter().enumerate() {
+                avg_embedding[i] += val / tag_embeddings.len() as f32;
+            }
+        }
+
+        // Normalize the embedding
+        let magnitude: f32 = avg_embedding
+            .iter()
+            .map(|&val| val * val)
+            .sum::<f32>()
+            .sqrt();
+
+        if magnitude > 0.0 {
+            avg_embedding.iter().map(|&val| val / magnitude).collect()
+        } else {
+            avg_embedding
+        }
+    };
+
     // Update the user's embedding in the database
     sqlx::query(
         r#"
@@ -444,6 +650,6 @@ pub async fn update_user_embedding(pool: &PgPool, user_id: &str) -> Result<()> {
     .bind(user_id)
     .execute(pool)
     .await?;
-    
+
     Ok(())
 }
