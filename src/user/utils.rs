@@ -426,17 +426,16 @@ pub async fn get_potential_nemeses(
 
     // Get the user's tags
     let user_tags = get_user_tags(pool, user_id).await?;
-    
+
     // Get tag embeddings for the user's tags
     let mut tag_embeddings = Vec::new();
     for tag in &user_tags {
-        let tag_embedding = sqlx::query_as::<_, (Option<Vec<f32>>,)>(
-            "SELECT embedding FROM Tags WHERE name = $1"
-        )
-        .bind(&tag.tag_name)
-        .fetch_one(pool)
-        .await?;
-        
+        let tag_embedding =
+            sqlx::query_as::<_, (Option<Vec<f32>>,)>("SELECT embedding FROM Tags WHERE name = $1")
+                .bind(&tag.tag_name)
+                .fetch_one(pool)
+                .await?;
+
         if let (Some(embedding),) = tag_embedding {
             tag_embeddings.push(embedding);
         }

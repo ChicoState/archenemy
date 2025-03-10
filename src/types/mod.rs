@@ -38,7 +38,10 @@ impl std::fmt::Display for Error {
                 if cfg!(debug_assertions) {
                     write!(f, "Database error: {}", message)
                 } else {
-                    write!(f, "Database error: ***Redacted*** I know what you are looking for :(")
+                    write!(
+                        f,
+                        "Database error: ***Redacted*** I know what you are looking for :("
+                    )
                 }
             }
             Self::S3 { msg } => write!(f, "S3 error: {}", msg),

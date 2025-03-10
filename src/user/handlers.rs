@@ -147,7 +147,7 @@ pub async fn get_nemesis_tags(
 ) -> Result<Json<Vec<NemesisTag>>, Error> {
     let limit = pagination.limit.unwrap_or(10);
     let nemesis_tags = utils::get_nemesis_tags(&state.pool, &tag_name, limit).await?;
-    
+
     // Convert to NemesisTag format
     let formatted_tags = nemesis_tags
         .into_iter()
@@ -156,7 +156,7 @@ pub async fn get_nemesis_tags(
             nemesis_score,
         })
         .collect();
-    
+
     Ok(Json(formatted_tags))
 }
 
@@ -373,4 +373,3 @@ pub async fn get_disliked_users(
 
     Ok(Json(result))
 }
-
