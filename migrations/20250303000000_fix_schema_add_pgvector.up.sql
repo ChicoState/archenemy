@@ -67,8 +67,14 @@ ALTER TABLE Users RENAME COLUMN name TO username;
 ALTER TABLE Users RENAME COLUMN profile_picture TO avatar_url;
 ALTER TABLE Users RENAME COLUMN profile_desc TO bio;
 
+-- Set default for avatar_url column
+ALTER TABLE Users ALTER COLUMN avatar_url SET DEFAULT 'https://archenemy.nyc3.digitaloceanspaces.com/default.jpeg';
+
 -- Add display_name column which can be different from username
 ALTER TABLE Users ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);
+
+-- Update existing null avatar_url values to use default
+UPDATE Users SET avatar_url = 'https://archenemy.nyc3.digitaloceanspaces.com/default.jpeg' WHERE avatar_url IS NULL OR avatar_url = '';
 
 -- Create a tags count materialized view for quick access to popular tags
 CREATE MATERIALIZED VIEW tag_counts AS

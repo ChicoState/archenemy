@@ -24,7 +24,6 @@ ALTER TABLE Users
     DROP COLUMN IF EXISTS embedding,
     DROP COLUMN IF EXISTS created_at,
     DROP COLUMN IF EXISTS updated_at,
-    DROP COLUMN IF EXISTS email,
     DROP COLUMN IF EXISTS display_name;
 
 -- Remove timestamp columns from other tables
