@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'profile.dart';
+import 'matches.dart';
 
 void main() {
   runApp(Root());
@@ -28,10 +29,18 @@ class App extends StatefulWidget {
 class AppState extends State<App> {
 	int pageIdx = 2;
 	List<Widget Function()> pageBuilders = [
+		() => Center(child: Text("Settings Placeholder")),
     () => ProfileView(Profile("My Profile", DateTime.now(), "My Bio", ["My1", "My2", "My3"])),
-    () => Center(child: Text("Settings Placeholder")),
-    () => ProfileView(Profile("Example Profile", DateTime.now(), "Example Bio", ["Ex1", "Ex2", "Ex3", "Ex4"])),
-    () => Center(child: Text("Matches Placeholder"))
+    //() => ProfileView(Profile("Example Profile", DateTime.now(), "Example Bio", ["Ex1", "Ex2", "Ex3", "Ex4"])),
+    () => ExplorePage([
+			Profile("Example Profile #2", DateTime.now(), "Example Bio #2", ["Interest #1", "Interest #2", "Interest #3", "Interest #4"]),
+			Profile("Example Profile #1", DateTime.now(), "Example Bio", ["Ex1", "Ex2", "Ex3", "Ex4"]),
+		]),
+		() => MatchesPage([
+			Profile("Match 1", DateTime.now(), "Example Bio", ["I1", "I2"]),
+			Profile("Match 2", DateTime.now(), "Example Bio", ["I1", "I2"]),
+			Profile("Match 3", DateTime.now(), "Example Bio", ["I1", "I2"]),
+		])
   ];
   
   @override
@@ -41,7 +50,6 @@ class AppState extends State<App> {
 			bottomNavigationBar: BottomNavigationBar(
         // for unknown reasons the navbar becomes (mostly) invisible when in "shifting" mode
         type: BottomNavigationBarType.fixed,
-        //backgroundColor: Theme.of(context).
 				currentIndex: pageIdx,
 				onTap: (int idx) {
 					setState(() {

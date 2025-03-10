@@ -52,7 +52,7 @@ class ProfileView extends StatelessWidget {
 					children: interests.map((interest) {
 						return WidgetSpan(
 							child: Card(
-								margin: EdgeInsets.fromLTRB(3.0, 0.0, 3.0, 0.0),
+								margin: EdgeInsets.fromLTRB(3.0, 3.0, 3.0, 3.0),
 								color: Colors.grey[400],//Theme.of(context).cardColor,
 								shape: RoundedRectangleBorder(
 									borderRadius: BorderRadius.all(Radius.circular(4.0))
@@ -133,6 +133,82 @@ class ProfileView extends StatelessWidget {
       ),
     );*/
   }
+}
+
+//var userProfile = Profile();
+
+class ProfileEdit extends StatefulWidget {
+	
+	Profile profile;
+	ProfileEdit(this.profile, { super.key });
+	
+	@override
+	createState() => _ProfileEditState();
+	
+}
+class _ProfileEditState extends State<ProfileEdit> {
+	
+	@override
+	Widget build(BuildContext context) {
+		
+		final profile = widget.profile;
+		
+		return Stack(
+			children: [
+				ProfileView(profile)
+			]
+		);
+	}
+}
+
+class ExplorePage extends StatefulWidget {
+	
+	List<Profile> profiles;
+	ExplorePage(this.profiles, { super.key });
+	
+	@override createState() => _ExplorePageState();
+}
+class _ExplorePageState extends State<ExplorePage> {
+	
+	@override build(BuildContext context) {
+		
+		final profiles = widget.profiles;
+		final profileView = profiles.isEmpty ?
+			Center(child: Text("No more profiles!")) : 
+			ProfileView(profiles.last);
+		
+		return Stack(
+			children: [
+				profileView,
+				Positioned(
+					bottom: 10.0,
+					left: 10.0,
+					child: IconButton.filled(
+						icon: Icon(Icons.close),
+						onPressed: () {
+							log.d("Disiked!");
+							setState(() {
+								widget.profiles.removeLast();
+							});
+						}
+					)
+				),
+				Positioned(
+					bottom: 10.0,
+					right: 10.0,
+					child: IconButton.filled(
+						icon: Icon(Icons.check),
+						onPressed: () {
+							log.d("Liked!");
+							setState(() {
+								widget.profiles.removeLast();
+							});
+						}
+					),
+				)
+			]
+		);
+	}
 }
 
 class EditProfile extends StatefulWidget {
