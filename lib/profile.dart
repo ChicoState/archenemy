@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'log.dart';
+
 
 class Profile {
   String name;
@@ -14,9 +16,13 @@ class Profile {
     try {
       var map = json.decode(raw);
       return Profile(
-          map.name, DateTime.parse(map.birthDate), map.bio, map.interests);
+				map.name,
+				DateTime.parse(map.birthDate),
+				map.bio,
+				map.interests
+			);
     } catch (err) {
-      print("Profile JSON parsing error: $err");
+      log.e("Profile JSON parsing error: $err");
       rethrow;
     }
   }
@@ -25,55 +31,107 @@ class Profile {
   }
 }
 
-class ProfileBoard extends StatefulWidget {
-  const ProfileBoard({super.key, required this.myProfile});
-  final Profile myProfile;
-  @override
-  State<ProfileBoard> createState() => _ProfileBoardState();
-}
-
-class _ProfileBoardState extends State<ProfileBoard> {
-  @override
+class ProfileView extends StatelessWidget {
+	
+	final Profile profile;
+	final bool editable; // doesn't work yet
+	// not sure whether profile editing should happen on another page or not
+	
+  const ProfileView(this.profile, {
+		super.key,
+		this.editable = false
+	});
+  
+	@override
   Widget build(BuildContext context) {
     //return Placeholder();
-
-    return Scaffold(
+		
+		Widget interestsView(List<String> interests) {
+			return Text.rich(
+				TextSpan(
+					children: interests.map((interest) {
+						return WidgetSpan(
+							child: Card(
+								margin: EdgeInsets.fromLTRB(3.0, 0.0, 3.0, 0.0),
+								color: Colors.grey[400],//Theme.of(context).cardColor,
+								shape: RoundedRectangleBorder(
+									borderRadius: BorderRadius.all(Radius.circular(4.0))
+								),
+								child: Padding(
+									padding: EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 3.0),
+									child: Text(interest)
+								),
+							)
+						);
+					}).toList()
+				)
+			);
+		}
+		
+		final children = [
+			Text(style: TextStyle(fontSize: 24), profile.name),
+			SizedBox(height: 160, child: Placeholder()),
+			interestsView(profile.interests),
+			Text(profile.bio),
+			SizedBox(height: 160, child: Placeholder()),
+			SizedBox(height: 160, child: Placeholder()),
+		];
+		
+		
+		// Unbelievably, this is the easiest way I could find to do this
+		List<Widget> spacedChildren = [];
+		for (Widget child in children) {
+			spacedChildren.add(child);
+			spacedChildren.add(SizedBox(height: 10));
+		}
+		
+		return Padding(
+			padding: EdgeInsets.all(16.0),
+			child: ListView(
+				//mainAxisAlignment: MainAxisAlignment.center,
+				children: spacedChildren
+			)
+		);
+		
+    /*return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text("Profile"),
       ),
       body: Center(
         child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(style: TextStyle(fontSize: 64), widget.myProfile.name),
-                  Expanded(child: Placeholder()),
-                  Container(
-                    height: MediaQuery.sizeOf(context).height / 4,
-                    width: MediaQuery.sizeOf(context).width,
-                    padding: EdgeInsets.all(16.0),
-                    child: ListView.builder(
-                        itemCount: widget.myProfile.interests.length,
-                        prototypeItem: ListTile(
-                          title: Text(widget.myProfile.interests[0]),
-                        ),
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                              title: Text(widget.myProfile.interests[index]));
-                        }),
-                  )
-                ])),
+					padding: EdgeInsets.all(16.0),
+					child: Column(
+						mainAxisAlignment: MainAxisAlignment.center,
+						children: <Widget>[
+							Text(style: TextStyle(fontSize: 64), profile.name),
+							Expanded(child: Placeholder()),
+							Container(
+								height: MediaQuery.sizeOf(context).height / 4,
+								width: MediaQuery.sizeOf(context).width,
+								padding: EdgeInsets.all(16.0),
+								child: ListView.builder(
+									itemCount: profile.interests.length,
+									prototypeItem: ListTile(
+										title: Text(profile.interests[0]),
+									),
+									itemBuilder: (context, index) {
+										return ListTile(
+											title: Text(profile.interests[index]));
+									}),
+							)
+						]
+					)
+				),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => EditProfile()));
+					final route = MaterialPageRoute(builder: (context) => EditProfile());
+          Navigator.push(context, route);
         },
         child: const Icon(Icons.manage_accounts),
       ),
-    );
+    );*/
   }
 }
 
@@ -104,7 +162,6 @@ class _EditProfileState extends State<EditProfile> {
                     ),
                   ),
                   TextFormField(
-                    expands: true,
                     decoration: const InputDecoration(
                       border: UnderlineInputBorder(),
                       labelText: 'What really grinds your gears',

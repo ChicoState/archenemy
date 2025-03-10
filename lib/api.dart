@@ -11,8 +11,8 @@ Future<void> init() async {
 	
 	FirebaseAuth.instance
 		.idTokenChanges()
-		.listen((User? _user) {
-			user = _user;
+		.listen((User? newUser) {
+			user = newUser;
 			if (user == null) {
 				log.w("User signed out");
 			} else {

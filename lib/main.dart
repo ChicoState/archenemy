@@ -28,10 +28,10 @@ class App extends StatefulWidget {
 class AppState extends State<App> {
 	int pageIdx = 2;
 	List<Widget Function()> pageBuilders = [
-    () => ProfileBoard(myProfile: Profile("Jane Doe", DateTime.now(), "My bio", List<String>.from(["one", "two"]))),
-    () => Center(child: Text("bcdef")),
-    () => Center(child: Text("bcdef")),
-    () => Center(child: Text("bcdef"))
+    () => ProfileView(Profile("My Profile", DateTime.now(), "My Bio", ["My1", "My2", "My3"])),
+    () => Center(child: Text("Settings Placeholder")),
+    () => ProfileView(Profile("Example Profile", DateTime.now(), "Example Bio", ["Ex1", "Ex2", "Ex3", "Ex4"])),
+    () => Center(child: Text("Matches Placeholder"))
   ];
   
   @override
