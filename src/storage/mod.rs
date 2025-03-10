@@ -1,5 +1,5 @@
 pub mod types;
-use crate::types::{Error, ArchenemyState};
+use crate::types::{ArchenemyState, Error};
 use axum::{
     body::Bytes,
     extract::{Multipart, Path},
