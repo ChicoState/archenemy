@@ -337,7 +337,7 @@ pub async fn get_dislike_tags(
 }
 
 // Discovery queries
-pub async fn get_potential_enemies(
+pub async fn get_potential_nemeses(
     pool: &PgPool,
     user_id: &str,
     limit: i64,

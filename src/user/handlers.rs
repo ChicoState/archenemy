@@ -179,8 +179,8 @@ pub async fn remove_user_tag(
     Ok(StatusCode::NO_CONTENT)
 }
 
-// Enemy Handlers
-pub async fn get_potential_enemies(
+// Nemesis Handlers
+pub async fn get_potential_nemeses(
     State(state): State<ArchenemyState>,
     user: FirebaseUser,
     Query(pagination): Query<PaginationParams>,
@@ -189,12 +189,12 @@ pub async fn get_potential_enemies(
     let limit = pagination.limit.unwrap_or(10);
     let offset = pagination.offset.unwrap_or(0);
 
-    let potential_enemies =
-        utils::get_potential_enemies(&state.pool, &user_id, limit, offset).await?;
+    let potential_nemeses =
+        utils::get_potential_nemeses(&state.pool, &user_id, limit, offset).await?;
 
-    // For each potential enemy, get their tags
+    // For each potential nemesis, get their tags
     let mut result = Vec::new();
-    for (user, score) in potential_enemies {
+    for (user, score) in potential_nemeses {
         let tags = utils::get_user_tags(&state.pool, &user.id).await?;
 
         result.push(UserWithTags {

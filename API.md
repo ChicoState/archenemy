@@ -164,13 +164,13 @@ DELETE /user/me/tags/{tagName}
 #### Response
 Status code 204 (No Content) if successful
 
-## Enemy API Endpoints
+## Nemesis API Endpoints
 
-### Get Potential Enemies
-Get a list of potential enemies based on tag mismatches or similarity scoring. (Authentication required)
+### Get Potential Nemeses
+Get a list of potential nemeses based on tag mismatches or similarity scoring. (Authentication required)
 
 ```http
-GET /enemies/discover
+GET /nemeses/discover
 ```
 
 #### Query Parameters
@@ -205,7 +205,7 @@ GET /enemies/discover
 Mark a user as someone you dislike. (Authentication required)
 
 ```http
-POST /enemies/like/{userID}
+POST /nemeses/like/{userID}
 ```
 
 #### Parameters
@@ -225,7 +225,7 @@ POST /enemies/like/{userID}
 Mark a user as someone you dislike. (Authentication required)
 
 ```http
-POST /enemies/dislike/{userID}
+POST /nemeses/dislike/{userID}
 ```
 
 #### Parameters
@@ -245,7 +245,7 @@ POST /enemies/dislike/{userID}
 Mark a user as someone you dislike for specific reasons (tags). (Authentication required)
 
 ```http
-POST /enemies/dislike/{userID}/tags
+POST /nemeses/dislike/{userID}/tags
 Content-Type: application/json
 
 {
@@ -274,7 +274,7 @@ Content-Type: application/json
 Get a list of users the current user has liked. (Authentication required)
 
 ```http
-GET /enemies/likes
+GET /nemeses/likes
 ```
 
 #### Query Parameters
@@ -301,7 +301,7 @@ GET /enemies/likes
 Get a list of users the current user has disliked. (Authentication required)
 
 ```http
-GET /enemies/dislikes
+GET /nemeses/dislikes
 ```
 
 #### Query Parameters
@@ -494,7 +494,7 @@ The following environment variables are required (it should be loaded by rocket)
 - [ ] Add file deletion endpoint
 - [ ] Implement proper authentication checks
 - [ ] Add file metadata support
-- [ ] Add mutual enemy discovery
+- [ ] Add mutual nemesis discovery
 - [ ] Implement recommendation system based on embeddings
 - [ ] Add pagination for list endpoints
 - [ ] Create admin endpoints for moderation

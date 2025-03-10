@@ -19,14 +19,14 @@ pub fn routes() -> Router<ArchenemyState> {
         .route("/user/:user_id/tags", get(handlers::get_user_tags))
         .route("/user/me/tags", post(handlers::add_user_tag))
         .route("/user/me/tags/:tag_name", delete(handlers::remove_user_tag))
-        // Enemy routes
-        .route("/enemies/discover", get(handlers::get_potential_enemies))
-        .route("/enemies/like/:user_id", post(handlers::like_user))
-        .route("/enemies/dislike/:user_id", post(handlers::dislike_user))
+        // Nemesis routes
+        .route("/nemeses/discover", get(handlers::get_potential_nemeses))
+        .route("/nemeses/like/:user_id", post(handlers::like_user))
+        .route("/nemeses/dislike/:user_id", post(handlers::dislike_user))
         .route(
-            "/enemies/dislike/:user_id/tags",
+            "/nemeses/dislike/:user_id/tags",
             post(handlers::dislike_user_with_tags),
         )
-        .route("/enemies/likes", get(handlers::get_liked_users))
-        .route("/enemies/dislikes", get(handlers::get_disliked_users))
+        .route("/nemeses/likes", get(handlers::get_liked_users))
+        .route("/nemeses/dislikes", get(handlers::get_disliked_users))
 }
