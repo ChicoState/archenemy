@@ -34,7 +34,13 @@ impl std::fmt::Display for Error {
                 write!(f, "Validation error in {}: {}", field, message)
             }
             Self::Duplicate { resource } => write!(f, "Resource already exists: {}", resource),
-            Self::Database { message } => write!(f, "Database error: {}", message),
+            Self::Database { message } => {
+                if cfg!(debug_assertions) {
+                    write!(f, "Database error: {}", message)
+                } else {
+                    write!(f, "Database error: ***Redacted*** I know what you are looking for :(")
+                }
+            }
             Self::S3 { msg } => write!(f, "S3 error: {}", msg),
             Self::MultipartParse { msg } => write!(f, "Multipart parse error: {}", msg),
             Self::Unknown { msg } => write!(f, "Unknown error: {}", msg),

@@ -1,3 +1,5 @@
+use crate::user::types::Url;
+use crate::user::types::Wrapped;
 use sqlx::{self, postgres::PgPool};
 use uuid::Uuid;
 
@@ -20,9 +22,9 @@ pub async fn get_user_by_id(pool: &PgPool, id: &str) -> Result<Option<User>> {
 }
 
 pub async fn create_user(pool: &PgPool, user: &CreateUserRequest) -> Result<User> {
-    let avatar_url = user.avatar_url.clone().unwrap_or_else(|| {
-        "https://archenemy.nyc3.digitaloceanspaces.com/default.jpeg".to_string()
-    });
+    let avatar_url = user.avatar_url.clone().unwrap_or(
+        Url::raw("https://archenemy.nyc3.digitaloceanspaces.com/default.jpeg".to_string())
+    );
 
     let result = sqlx::query_as::<_, User>(
         r#"
