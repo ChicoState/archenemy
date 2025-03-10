@@ -1,19 +1,18 @@
 pub mod types;
-use crate::types::Error;
+use crate::types::{ArchenemyState, Error};
 use axum::{
     body::Bytes,
     extract::{Multipart, Path},
     routing::{get, put},
     Extension, Json, Router,
 };
-use firebase_auth::FirebaseAuthState;
 use s3::{creds::Credentials, Bucket};
 use std::sync::Arc;
 use uuid::Uuid;
 
-type BucketState = Arc<Bucket>;
+type BucketExtension = Arc<Bucket>;
 
-pub fn routes(access_id: &str, secret_access_key: &str) -> Router<FirebaseAuthState> {
+pub fn routes(access_id: &str, secret_access_key: &str) -> Router<ArchenemyState> {
     let bucket = Bucket::new(
         "archenemy",
         "https://archenemy.nyc3.digitaloceanspaces.com"
@@ -31,7 +30,7 @@ pub fn routes(access_id: &str, secret_access_key: &str) -> Router<FirebaseAuthSt
 }
 
 async fn get_object(
-    Extension(bucket): Extension<BucketState>,
+    Extension(bucket): Extension<BucketExtension>,
     Path(object): Path<String>,
 ) -> Result<Bytes, Error> {
     let object = bucket.get_object(object).await.map_err(|e| Error::S3 {
@@ -45,7 +44,7 @@ async fn get_object(
 
 #[axum::debug_handler]
 async fn put_object(
-    Extension(bucket): Extension<BucketState>,
+    Extension(bucket): Extension<BucketExtension>,
     mut multipart: Multipart,
 ) -> Result<Json<types::PutResponse>, Error> {
     let file_name = Uuid::new_v4();

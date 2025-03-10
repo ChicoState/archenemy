@@ -1,3 +1,4 @@
+use archenemy::types::ArchenemyState;
 use axum::Router;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use shuttle_runtime::SecretStore;
@@ -31,7 +32,11 @@ async fn main(
                     .expect("STORAGE_ACCESS_TOKEN not found"),
             ),
         )
-        .with_state(FirebaseAuthState { firebase_auth });
+        .merge(archenemy::user::routes())
+        .with_state(ArchenemyState {
+            auth: FirebaseAuthState { firebase_auth },
+            pool,
+        });
 
     Ok(router.into())
 }

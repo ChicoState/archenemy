@@ -1,3 +1,4 @@
 pub mod storage;
-mod types;
-mod utils;
+pub mod types;
+pub mod user;
+pub mod utils;
