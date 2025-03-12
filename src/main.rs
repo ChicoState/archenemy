@@ -2,18 +2,27 @@ use archenemy::types::ArchenemyState;
 use axum::Router;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 use shuttle_runtime::SecretStore;
-use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use std::sync::Arc;
 
 #[shuttle_runtime::main]
-async fn main(
-    #[shuttle_shared_db::Postgres] pool: PgPool,
-    #[shuttle_runtime::Secrets] secrets: SecretStore,
-) -> shuttle_axum::ShuttleAxum {
-    sqlx::migrate!()
-        .run(&pool)
+async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum::ShuttleAxum {
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(
+            &secrets
+                .get("NEON_POSTGRES_URL")
+                .expect("NEON_POSTGRES_URL not found"),
+        )
         .await
-        .expect("Migrations failed :(");
+        .expect("Failed to connect to Postgres");
+    match sqlx::migrate!().run(&pool).await {
+        Ok(_) => println!("Database migrations completed successfully!"),
+        Err(e) => {
+            eprintln!("Migration error: {:?}", e);
+            panic!("Database migrations failed");
+        }
+    };
 
     let firebase_auth_id = secrets
         .get("FIREBASE_AUTH_PROJECT_ID")
