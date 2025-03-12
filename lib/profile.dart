@@ -60,21 +60,7 @@ class ProfileView extends StatelessWidget {
     }
 
     final children = [
-      Row(
-        children: [
-          Text(style: TextStyle(fontSize: 24), profile.name),
-          IconButton(
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => EditProfile(
-                              myProfile: profile,
-                            )));
-              },
-              icon: Icon(Icons.menu))
-        ],
-      ),
+      Text(style: TextStyle(fontSize: 24), profile.name),
       SizedBox(height: 160, child: Placeholder()),
       interestsView(profile.interests),
       Text(profile.bio),
@@ -142,6 +128,36 @@ class ProfileView extends StatelessWidget {
         child: const Icon(Icons.manage_accounts),
       ),
     );*/
+  }
+}
+
+class MyProfileView extends StatefulWidget {
+  const MyProfileView(this.myProfile, {super.key});
+  final Profile myProfile;
+  @override
+  State<StatefulWidget> createState() => _MyProfileViewState();
+}
+
+class _MyProfileViewState extends State<MyProfileView> {
+  @override
+  build(BuildContext context) {
+    final myProfile = widget.myProfile;
+    return Stack(children: [
+      ProfileView(myProfile),
+      Positioned(
+          top: 60,
+          right: 10,
+          child: IconButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => EditProfile(
+                              myProfile: myProfile,
+                            )));
+              },
+              icon: Icon(Icons.menu)))
+    ]);
   }
 }
 
@@ -318,7 +334,7 @@ class _EditProfileState extends State<EditProfile> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('My Profile'),
+        title: Text('Edit Profile'),
       ),
       body: Center(
         child: Padding(
