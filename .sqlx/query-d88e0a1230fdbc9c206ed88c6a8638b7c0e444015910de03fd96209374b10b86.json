@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO Tags (name)\n        VALUES ($1)\n        ON CONFLICT (name) DO NOTHING\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d88e0a1230fdbc9c206ed88c6a8638b7c0e444015910de03fd96209374b10b86"
+}

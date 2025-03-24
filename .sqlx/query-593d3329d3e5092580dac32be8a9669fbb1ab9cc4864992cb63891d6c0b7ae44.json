@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "REFRESH MATERIALIZED VIEW tag_counts",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "593d3329d3e5092580dac32be8a9669fbb1ab9cc4864992cb63891d6c0b7ae44"
+}
