@@ -27,7 +27,7 @@ pub struct UserWithTags {
     #[serde(flatten)]
     user: User,
     tags: Vec<UserTag>,
-    compatibility_score: Option<f32>,
+    compatibility_score: Option<f64>,
 }
 
 #[derive(Debug, Serialize)]
@@ -58,7 +58,7 @@ pub struct AddTagsRequest {
 #[derive(Debug, Serialize)]
 pub struct NemesisTag {
     tag_name: String,
-    nemesis_score: f32,
+    nemesis_score: f64,
 }
 
 // User Handlers

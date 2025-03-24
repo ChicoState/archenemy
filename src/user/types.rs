@@ -1,3 +1,4 @@
+use pgvector::Vector;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::{FromRow, Type};
 use sqlx::types::chrono::{DateTime, Utc};
@@ -137,6 +138,12 @@ impl Deref for Url {
     }
 }
 
+impl From<String> for Url {
+    fn from(url: String) -> Self {
+        Self::raw(url)
+    }
+}
+
 impl<Inner> Wrapped<Inner> for Url
 where
     Inner: Display + ToString + Debug,
@@ -216,6 +223,12 @@ where
     }
 }
 
+impl From<String> for TagName {
+    fn from(tag_name: String) -> Self {
+        Self::raw(tag_name)
+    }
+}
+
 impl Validate for TagName {
     fn validate(&self) -> Result<(), crate::types::Error> {
         // Simple tag name validation
@@ -258,7 +271,7 @@ pub struct User {
     pub display_name: Option<String>,
     pub avatar_url: Url,
     pub bio: String,
-    pub embedding: Option<Vec<f32>>, // pgvector type as Vec<f32>
+    pub embedding: Option<Vector>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
