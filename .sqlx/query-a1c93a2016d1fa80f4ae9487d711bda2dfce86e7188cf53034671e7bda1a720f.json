@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT tag_name, user_count FROM tag_counts ORDER BY user_count DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "tag_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "a1c93a2016d1fa80f4ae9487d711bda2dfce86e7188cf53034671e7bda1a720f"
+}

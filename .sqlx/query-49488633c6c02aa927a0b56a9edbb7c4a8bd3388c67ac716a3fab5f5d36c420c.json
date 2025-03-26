@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT \n                    name, \n                    embedding <=> $1 as nemesis_score\n                FROM \n                    Tags\n                WHERE \n                    name != $2 AND embedding IS NOT NULL\n                ORDER BY \n                    embedding <=> $1\n                LIMIT $3\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "nemesis_score",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "vector",
+            "kind": "Simple"
+          }
+        },
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "49488633c6c02aa927a0b56a9edbb7c4a8bd3388c67ac716a3fab5f5d36c420c"
+}
