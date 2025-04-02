@@ -7,18 +7,56 @@ import 'log.dart';
 import './profile.dart';
 import 'package:http/http.dart' as http;
 
-const host = "";
+const host = "https://archenemy-zusg.shuttle.app";
 const port = 443;
+
+/* Unclear if the auth logic will look like this going forward */
+User? user;
+
+Future<void> init() async {
+	
+	FirebaseAuth.instance
+		.idTokenChanges()
+		.listen((User? newUser) {
+			user = newUser;
+			if (user == null) {
+				log.w("User signed out");
+			} else {
+				log.i("User signed in");
+			}
+		});
+	
+	await Firebase.initializeApp(
+		options: DefaultFirebaseOptions.currentPlatform
+	);
+}
+
+Future<String?> getToken() async {
+	return await user?.getIdToken();
+}
+Future<Profile?> getMyProfile() async {
+	return _get<Profile?>("/user/me",
+		ok: (res) => Profile.fromJson(res.body),
+		err: (_) => null
+	);
+}
+Future<bool> patchMyProfile(Profile newProfile) async {
+	return _req<bool>(http.patch, "/user/me",
+		body: newProfile.toJson(),
+		ok: (res) => true,
+		err: (_) => false
+	);
+}
+
+
 
 //HttpClient httpClient = HttpClient();
 
 // TODO
-String? getToken() {
-	return "";
-}
 
-Map<String, String>? _authorized(Map<String, String>? headers) {
-	String? token = getToken();
+
+Future<Map<String, String>?> _authorized(Map<String, String>? headers) async {
+	String? token = await getToken();
 	if (token == null) {
   	log.d("Attempted unauthorized HTTP request");
     return null;
@@ -46,7 +84,7 @@ Future<T> _get<T>(
 		required T Function(http.Response?) err
 	}
 ) async {
-	final authorizedHeaders = _authorized(headers);
+	final authorizedHeaders = await _authorized(headers);
 	if (authorizedHeaders == null) {
 		return err(null);
 	}
@@ -63,7 +101,7 @@ Future<T> _req<T>(
 		required T Function(http.Response?) err
 	}
 ) async {
-	final authorizedHeaders = _authorized(headers);
+	final authorizedHeaders = await _authorized(headers);
 	if (authorizedHeaders == null) {
 		return err(null);
 	}
@@ -77,123 +115,4 @@ T _handle<T>(http.Response res, T Function(http.Response) ok, T Function(http.Re
 		return err(res);
 	}
 }
-
-Future<Profile?> getMyProfile() async {
-	return _get<Profile?>("/user/me",
-		ok: (res) => Profile.fromJson(res.body),
-		err: (_) => null
-	);
-}
-Future<bool> patchMyProfile(Profile newProfile) async {
-	return _req<bool>(http.patch, "/user/me",
-		body: newProfile.toJson(),
-		ok: (res) => true,
-		err: (_) => false
-	);
-}
-
-
-
-/*HttpClientRequest? _authorized(HttpClientRequest req) {
-	String? token = null; // replace when we actually are able to get a token
-	if (token == null) {
-  	log.d("Attempted unauthorized HTTP request");
-    return null;
-  } else {
-		req.headers.add("Authorization", "Bearer $token");
-		return req;
-  }
-}
-Future<HttpClientRequest?> getReq(String path) async {
-	return _authorized(await httpClient.get(host, port, path));
-}
-Future<HttpClientRequest?> postReq(String path) async {
-	return _authorized(await httpClient.post(host, port, path));
-}
-Future<HttpClientRequest?> patchReq(String path) async {
-	return _authorized(await httpClient.patch(host, port, path));
-}
-Future<HttpClientResponse?> get(String path) async {
-	return (await getReq(path))?.close();
-}
-Future<HttpClientResponse?> post(String path) async {
-	return (await postReq(path))?.close();
-}
-Future<HttpClientResponse?> patch(String path) async {
-	return (await patchReq(path))?.close();
-}
-
-Future<Profile?> getMyProfile() async {
-	final res = await get("/user/me");
-	log.d(res);
-}
-Future<bool> patchMyProfile() async {
-	final re = await patch("/user/me");
-	return true;
-}
-Future<Profile?> getProfile(String userId) async {
-	final res = await get("/user/$userId");
-	res?.
-	return null;
-}*/
-
-
-/*Future<List<Profile>?> getDiscoveryProfiles(int limit, int offset) async {
-	final req = await get("/nemeses/discover?offset=$offset&limit=$limit");
-	if (req == null) { return null; }
-	final res = await req.close();
-	return null;
-}
-Future<bool> postLike(int userId) async { // userIds probably won't stay as int
-	final req = await post("/nemeses/like/$userId");
-	if (req == null) { return null; }
-	final res = await req.close();
-	return false;
-}
-Future<bool> postDislike(int userId) async {
-	final req = await post("/nemeses/dislike/$userId");
-	if (req == null) { return null; }
-	final res = await req.close();
-	return false;
-}
-
-
-
-Future<List<Profile?>> getLikedProfiles() async {
-	return null;
-}
-Future<List<Profile?>> getDislikedProfiles() async {
-	return null;
-}*/
-/*Future putFile() async {
-	
-}
-Future getFile() async {
-	
-}*/
-
-
-
-
-User? user;
-
-Future<void> init() async {
-	
-	FirebaseAuth.instance
-		.idTokenChanges()
-		.listen((User? newUser) {
-			user = newUser;
-			if (user == null) {
-				log.w("User signed out");
-			} else {
-				log.i("User signed in");
-			}
-		});
-	
-	await Firebase.initializeApp(
-		options: DefaultFirebaseOptions.currentPlatform
-	);
-}
-
-const serverURL = "https://archenemy-zusg.shuttle.app";
 
