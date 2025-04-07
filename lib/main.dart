@@ -5,12 +5,32 @@ import 'theme_config.dart';
 
 void main() {
   runApp(const Root());
+
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'profile.dart';
+import 'matches.dart';
+import 'login.dart';
+import 'api.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await init(); // this calls Firebase.initializeApp under the hood
+  runApp(Root());
 }
 
 class Root extends StatefulWidget {
   const Root({super.key});
   @override
   State<Root> createState() => _RootState();
+  Widget build(BuildContext ctx) {
+    return MaterialApp(
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: LoginPage());
+  }
 }
 
 class _RootState extends State<Root> {
