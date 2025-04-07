@@ -1,2 +1,0 @@
-C:/Users/erikg/hatingapp/android/app/.cxx/Debug/5x2u363g/armeabi-v7a/CMakeFiles/edit_cache.dir
-C:/Users/erikg/hatingapp/android/app/.cxx/Debug/5x2u363g/armeabi-v7a/CMakeFiles/rebuild_cache.dir

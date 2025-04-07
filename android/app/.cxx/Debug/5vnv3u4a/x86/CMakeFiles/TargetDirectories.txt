@@ -1,2 +1,0 @@
-C:/Users/erikg/hatingapp/android/app/.cxx/Debug/5vnv3u4a/x86/CMakeFiles/edit_cache.dir
-C:/Users/erikg/hatingapp/android/app/.cxx/Debug/5vnv3u4a/x86/CMakeFiles/rebuild_cache.dir
