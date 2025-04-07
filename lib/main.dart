@@ -5,6 +5,7 @@ import 'profile.dart';
 import 'matches.dart';
 import 'login.dart';
 import 'api.dart';
+import 'settings.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +37,7 @@ class App extends StatefulWidget {
 class AppState extends State<App> {
   int pageIdx = 2;
   List<Widget Function()> pageBuilders = [
-    () => Center(child: Text("Settings Placeholder")),
+    () => SettingsScreen(),
     () => MyProfileView(
         Profile("My Profile", DateTime.now(), "My Bio", ["My1", "My2", "My3"])),
     //() => ProfileView(Profile("Example Profile", DateTime.now(), "Example Bio", ["Ex1", "Ex2", "Ex3", "Ex4"])),

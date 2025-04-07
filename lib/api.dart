@@ -19,6 +19,4 @@ Future<void> init() async {
       log.i("User signed in");
     }
   });
-
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 }
