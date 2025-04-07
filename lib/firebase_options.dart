@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDoUmtCQVWbIc_Q01RbQi69RKIPt-R9y0U',
-    appId: '1:334764402722:android:6d707c389ce6105f25827b',
+    appId: '1:334764402722:android:dcf9ea585b45430125827b',
     messagingSenderId: '334764402722',
     projectId: 'archenemy-e49df',
     storageBucket: 'archenemy-e49df.firebasestorage.app',
@@ -70,7 +70,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '334764402722',
     projectId: 'archenemy-e49df',
     storageBucket: 'archenemy-e49df.firebasestorage.app',
-    iosClientId: '334764402722-0n4vg2rhdnaebdegt1ktsneua0u8so3e.apps.googleusercontent.com',
+    iosClientId:
+        '334764402722-0n4vg2rhdnaebdegt1ktsneua0u8so3e.apps.googleusercontent.com',
     iosBundleId: 'com.example.hatingapp',
   );
 }
