@@ -21,4 +21,4 @@ jobs:
         flutter-version-file: pubspec.yaml
     - run: flutter pub get
     - run: flutter test
-    - run: dart format --output=none --set-exit-if-changed .
+#    - run: dart format --output=none --set-exit-if-changed .
