@@ -52,9 +52,6 @@ Future<bool> patchMyProfile(Profile newProfile) async {
 
 //HttpClient httpClient = HttpClient();
 
-// TODO
-
-
 Future<Map<String, String>?> _authorized(Map<String, String>? headers) async {
 	String? token = await getToken();
 	if (token == null) {
@@ -102,17 +99,13 @@ Future<T> _req<T>(
 	}
 ) async {
 	final authorizedHeaders = await _authorized(headers);
-	if (authorizedHeaders == null) {
-		return err(null);
-	}
+	if (authorizedHeaders == null) return err(null);
 	final res = await type(Uri.https(host, path), headers: authorizedHeaders);
 	return _handle(res, ok, err);
 }
 T _handle<T>(http.Response res, T Function(http.Response) ok, T Function(http.Response) err) {
-	if (res.statusCode == 200) {
-		return ok(res);
-	} else {
-		return err(res);
-	}
+	if (res.statusCode == 200) return ok(res);
+	return err(res);
 }
+
 
