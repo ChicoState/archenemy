@@ -155,7 +155,11 @@ class _MyProfileViewState extends State<MyProfileView> {
                     MaterialPageRoute(
                         builder: (context) => EditProfile(
                               myProfile: myProfile,
-                            )));
+                            ))).then((_) {
+                  setState(() {
+                    myProfile;
+                  });
+                });
               },
               icon: Icon(Icons.menu)))
     ]);
