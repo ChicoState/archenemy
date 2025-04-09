@@ -20,7 +20,7 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.6.0
-
+  flutter: ">=3.7.0 <3.8.0"
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -37,6 +37,7 @@ dependencies:
   firebase_auth: ^5.5.1
   logger: ^2.5.0
   firebase_core: ^3.12.1
+  flutter_card_swiper: ^7.0.2
   google_sign_in: ^6.3.0
 
 dev_dependencies:
@@ -56,6 +57,8 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
+  assets:
+    - assets/images/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
