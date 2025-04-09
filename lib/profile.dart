@@ -311,16 +311,17 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<String?> validateUsernameFromServer(String username) async {
-    final Set<String> takenUsernames = <String>{'jack', 'alex'};
+    // final Set<String> takenUsernames = <String>{'jack', 'alex'};
 
-    await Future<void>.delayed(Duration(seconds: 1));
+    // await Future<void>.delayed(Duration(seconds: 1));
 
-    final bool isValid = !takenUsernames.contains(username);
-    if (isValid) {
-      return null;
-    }
+    // final bool isValid = !takenUsernames.contains(username);
+    // if (isValid) {
+    //   return null;
+    // }
 
-    return 'Username $username is already taken';
+    // return 'Username $username is already taken';
+    return null;
   }
 
   Future<void> _selectDate() async {
