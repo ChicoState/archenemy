@@ -25,8 +25,6 @@ Future<void> init() async {
       log.i("User signed in");
     }
   });
-
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 }
 
 Future<String?> getToken() async {
