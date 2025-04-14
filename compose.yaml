@@ -1,0 +1,30 @@
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: archenemy_postgres_test
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: password 
+      POSTGRES_DB: archenemy_test
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    command: postgres -c 'max_connections=100'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d archenemy_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: archenemy_app
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      # Override the database URL to connect to the container service instead of Neon
+      NEON_POSTGRES_URL: "postgresql://postgres:password@database:5432/archenemy_test"

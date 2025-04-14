@@ -8,6 +8,7 @@ mod handlers;
 mod types;
 mod utils;
 
+// TODO: Endpoint to check whether user exists
 pub fn routes() -> Router<ArchenemyState> {
     Router::<ArchenemyState>::new()
         // User routes

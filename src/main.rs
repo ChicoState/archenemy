@@ -1,21 +1,52 @@
 use archenemy::types::ArchenemyState;
 use axum::Router;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
-use shuttle_runtime::SecretStore;
+
 use sqlx::postgres::PgPoolOptions;
 use std::sync::Arc;
 
-#[shuttle_runtime::main]
-async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum::ShuttleAxum {
+#[cfg(not(feature = "local"))]
+use shuttle_runtime::SecretStore;
+
+#[cfg(feature = "local")]
+mod local {
+    use std::env;
+
+    pub struct Secrets {
+        values: std::collections::HashMap<String, String>,
+    }
+
+    impl Secrets {
+        pub fn new() -> Self {
+            dotenv::dotenv().ok();
+            let mut values = std::collections::HashMap::new();
+
+            for (key, value) in env::vars() {
+                values.insert(key, value);
+            }
+
+            Self { values }
+        }
+
+        pub fn get(&self, key: &str) -> Option<String> {
+            self.values.get(key).cloned()
+        }
+    }
+}
+
+// Create common setup function to be used by both local and shuttle
+async fn setup_app(
+    db_url: &str,
+    firebase_auth_id: &str,
+    storage_access_id: &str,
+    storage_access_token: &str,
+) -> Router {
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect(
-            &secrets
-                .get("NEON_POSTGRES_URL")
-                .expect("NEON_POSTGRES_URL not found"),
-        )
+        .connect(db_url)
         .await
         .expect("Failed to connect to Postgres");
+
     match sqlx::migrate!().run(&pool).await {
         Ok(_) => println!("Database migrations completed successfully!"),
         Err(e) => {
@@ -24,28 +55,91 @@ async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum:
         }
     };
 
-    let firebase_auth_id = secrets
-        .get("FIREBASE_AUTH_PROJECT_ID")
-        .expect("Secret not found");
-    let firebase_auth = Arc::new(FirebaseAuth::new(&firebase_auth_id).await);
+    let firebase_auth = Arc::new(FirebaseAuth::new(firebase_auth_id).await);
 
-    let router = Router::new()
+    Router::new()
         .nest(
             "/storage",
-            archenemy::storage::routes(
-                &secrets
-                    .get("STORAGE_ACCESS_ID")
-                    .expect("STORAGE_ACCESS_ID not found"),
-                &secrets
-                    .get("STORAGE_ACCESS_TOKEN")
-                    .expect("STORAGE_ACCESS_TOKEN not found"),
-            ),
+            archenemy::storage::routes(storage_access_id, storage_access_token),
         )
         .merge(archenemy::user::routes())
         .with_state(ArchenemyState {
             auth: FirebaseAuthState { firebase_auth },
             pool,
-        });
+        })
+}
+
+#[cfg(not(feature = "local"))]
+#[shuttle_runtime::main]
+async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum::ShuttleAxum {
+    let db_url = secrets
+        .get("NEON_POSTGRES_URL")
+        .expect("NEON_POSTGRES_URL not found");
+
+    let firebase_auth_id = secrets
+        .get("FIREBASE_AUTH_PROJECT_ID")
+        .expect("Secret not found");
+
+    let storage_access_id = secrets
+        .get("STORAGE_ACCESS_ID")
+        .expect("STORAGE_ACCESS_ID not found");
+
+    let storage_access_token = secrets
+        .get("STORAGE_ACCESS_TOKEN")
+        .expect("STORAGE_ACCESS_TOKEN not found");
+
+    let router = setup_app(
+        &db_url,
+        &firebase_auth_id,
+        &storage_access_id,
+        &storage_access_token,
+    )
+    .await;
 
     Ok(router.into())
+}
+
+#[cfg(feature = "local")]
+#[tokio::main]
+async fn main() {
+    let secrets = local::Secrets::new();
+
+    let db_url = secrets
+        .get("NEON_POSTGRES_URL")
+        .expect("NEON_POSTGRES_URL not found");
+
+    let firebase_auth_id = secrets
+        .get("FIREBASE_AUTH_PROJECT_ID")
+        .expect("Secret not found");
+
+    let storage_access_id = secrets
+        .get("STORAGE_ACCESS_ID")
+        .expect("STORAGE_ACCESS_ID not found");
+
+    let storage_access_token = secrets
+        .get("STORAGE_ACCESS_TOKEN")
+        .expect("STORAGE_ACCESS_TOKEN not found");
+
+    let app = setup_app(
+        &db_url,
+        &firebase_auth_id,
+        &storage_access_id,
+        &storage_access_token,
+    )
+    .await;
+
+    let host = secrets.get("HOST").unwrap_or_else(|| "0.0.0.0".to_string());
+    let port: u16 = secrets
+        .get("PORT")
+        .unwrap_or_else(|| "3000".to_string())
+        .parse()
+        .expect("PORT must be a number");
+
+    let listener = tokio::net::TcpListener::bind(format!("{}:{}", host, port))
+        .await
+        .unwrap();
+
+    println!("🚀 Server started on http://{}:{}", host, port);
+
+    axum::serve(listener, app).await.unwrap();
 }
