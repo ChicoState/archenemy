@@ -1,6 +1,6 @@
 services:
   database:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg17
     container_name: archenemy_postgres
     environment:
       POSTGRES_USER: postgres 
