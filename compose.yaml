@@ -1,11 +1,11 @@
 services:
   database:
     image: postgres:16-alpine
-    container_name: archenemy_postgres_test
+    container_name: archenemy_postgres
     environment:
       POSTGRES_USER: postgres 
       POSTGRES_PASSWORD: password 
-      POSTGRES_DB: archenemy_test
+      POSTGRES_DB: archenemy
     ports:
       - "5432:5432"
     restart: unless-stopped
@@ -27,4 +27,12 @@ services:
         condition: service_healthy
     environment:
       # Override the database URL to connect to the container service instead of Neon
-      NEON_POSTGRES_URL: "postgresql://postgres:password@database:5432/archenemy_test"
+      NEON_POSTGRES_URL: "postgresql://postgres:password@database:5432/archenemy"
+    develop:
+      watch:
+        - path: ./src
+          action: rebuild
+        - path: ./Cargo.toml
+          action: rebuild
+        - path: ./Cargo.lock
+          action: rebuild

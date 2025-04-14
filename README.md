@@ -22,11 +22,9 @@ Ensure these ports are not already in use by other services on your system.
 
 ### Configuration
 
-- Local development:
-    - You don't need any configuration! I did my best to make everything work out of box
+- Dm me (WERDXZ) on discord for a copy of environment variable, put it at root directory (it should be `Secrets.toml`) (Only needed if you want bucket access).
+- Else, just create an empty `Secrets.toml` file.
 
-- Production:
-    - Dm me (WERDXZ) on discord for a copy of environment variable, put it at root directory (it should be `Secrets.toml`)
 
 ### Running with Docker Compose
 

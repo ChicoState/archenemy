@@ -1,41 +1,22 @@
-FROM rust:1.86-slim AS builder
-
-WORKDIR /usr/src/app
-
-# Install dependencies for building
-RUN apt-get update && \
-    apt-get install -y pkg-config libssl-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy the project files
-COPY . .
-
-# Build the project (using release mode for optimization)
-RUN cargo build --release --features local
-
-FROM debian:12-slim as runtime
-
+FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /app
 
-# Install runtime dependencies
-RUN apt-get update && \
-    apt-get install -y ca-certificates libssl-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-# Copy the binary from the builder stage
-COPY --from=builder /usr/src/app/target/release/archenemy /app/archenemy
+FROM chef AS builder 
+COPY --from=planner /app/recipe.json recipe.json
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --recipe-path recipe.json
 
-# Copy the Secrets.toml file
-COPY Secrets.toml /app/Secrets.toml
-
+COPY . .
 # Create a script to load environment variables from Secrets.toml and start the application
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
 # Load variables from Secrets.toml\n\
-if [ -f /app/Secrets.toml ]; then\n\
+if [ -f /usr/local/share/archenemy/Secrets.toml ]; then\n\
   echo "Loading environment variables from Secrets.toml..."\n\
   while IFS="=" read -r key value; do\n\
     # Skip comments and empty lines\n\
@@ -48,21 +29,32 @@ if [ -f /app/Secrets.toml ]; then\n\
     # Export as environment variable\n\
     export "$key"="$value"\n\
     echo "Exported: $key"\n\
-  done < <(grep "=" /app/Secrets.toml)\n\
+  done < <(grep "=" /usr/local/share/archenemy/Secrets.toml)\n\
   echo "Environment variables loaded."\n\
 else\n\
   echo "Warning: Secrets.toml not found!"\n\
 fi\n\
 \n\
-exec /app/archenemy\n\
-' > /app/entrypoint.sh
+exec /usr/local/bin/archenemy\n\
+' > entrypoint.sh
 
 # Make the script executable
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x entrypoint.sh
+
+# Build application
+RUN cargo build --release --bin archenemy --features local
+
+FROM debian:bookworm-slim AS runtime
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y ca-certificates libssl3 libpq5 libsqlite3-0 && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/target/release/archenemy /usr/local/bin/archenemy
+COPY --from=builder /app/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY Secrets.toml /usr/local/share/archenemy/Secrets.toml
 
 # Expose the port the application will run on
 EXPOSE 3000
 
 # Use the entrypoint script
-ENTRYPOINT ["/app/entrypoint.sh"]
-
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
