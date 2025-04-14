@@ -151,4 +151,3 @@ class ProfileView extends StatelessWidget {
   }
 }
 
-

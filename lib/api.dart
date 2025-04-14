@@ -1,7 +1,6 @@
 
 import 'log.dart' as log;
 
-
 import 'package:http/http.dart' as http;
 import './auth.dart' as auth;
 import 'dart:convert';
@@ -41,6 +40,7 @@ Profile? _profileFromMap(dynamic map) {
 		return null;
 	}
 }
+
 Profile? _profileFromJson(String raw) {
 	return _profileFromMap(json.decode(raw));
 }
@@ -201,5 +201,3 @@ T _handle<T>(http.Response res, T Function(http.Response) ok, T Function(http.Re
 	log.error("invalid HTTP response code: ${res.statusCode}");
 	return err(res);
 }
-
-
