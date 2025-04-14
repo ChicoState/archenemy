@@ -1,31 +1,49 @@
 [![Clippy check](https://github.com/ChicoState/archenemy/actions/workflows/ci.yml/badge.svg)](https://github.com/ChicoState/archenemy/actions/workflows/ci.yml)
 
-# Hatingapp
+# Archenemy 
 
-A developer matching platform that helps you find your coding nemesis!
+A matching platform that helps you find your nemesis!
 
-## Database Setup
+## Development Environment Setup
 
-### Seeding the Database
+### Prerequisites
 
-To populate the database with initial test data:
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-1. First, get the database URL:
-   - DM [werdxz on Discord](https://discord.com/) for the database credentials
-   - The URL format will be: `postgres://<user>:<password>@<host>:<port>/<database>`
+### Port Requirements
 
-2. Run the seed script:
-   ```bash
-   # Basic usage (will prompt for database URL)
-   ./seed/seed seed/0x01.seed
+The following ports need to be available on your system:
 
-   # Or with environment variable
-   DATABASE_URL=<your-database-url> ./seed/seed seed/0x01.seed
-   ```
+- `3000`: API Server
+- `5432`: PostgreSQL Database
 
-Options:
-- Use `-y` flag to skip confirmation prompts
-- Use `--no-clear` to keep existing data
-- Use `-h` or `--help` for more options
+Ensure these ports are not already in use by other services on your system.
 
-⚠️ Note: The seed script will clear all existing data by default. Use `--no-clear` if you want to preserve existing data.
+### Configuration
+
+- Local development:
+    - You don't need any configuration! I did my best to make everything work out of box
+
+- Production:
+    - Dm me (WERDXZ) on discord for a copy of environment variable, put it at root directory (it should be `Secrets.toml`)
+
+### Running with Docker Compose
+
+Start the development environment:
+
+```bash
+docker compose up
+```
+
+To run in detached mode:
+
+```bash
+docker compose up -d # It wouldn't block your terminal!
+```
+
+To stop the containers:
+
+```bash
+docker-compose -f docker-compose.dev.yaml down
+```
