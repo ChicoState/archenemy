@@ -26,9 +26,13 @@ if [ -f /usr/local/share/archenemy/Secrets.toml ]; then\n\
     key=$(echo "$key" | tr -d "[:space:]")\n\
     # Remove quotes around values if they exist\n\
     value=$(echo "$value" | sed -E "s/^[\"'\''](.*)[\"\'']$/\\1/")\n\
-    # Export as environment variable\n\
-    export "$key"="$value"\n\
-    echo "Exported: $key"\n\
+    # Only set environment variable if it doesn'\''t already exist\n\
+    if [ -z "${!key}" ]; then\n\
+      export "$key"="$value"\n\
+      echo "Exported: $key"\n\
+    else\n\
+      echo "Keeping existing value for: $key"\n\
+    fi\n\
   done < <(grep "=" /usr/local/share/archenemy/Secrets.toml)\n\
   echo "Environment variables loaded."\n\
 else\n\
