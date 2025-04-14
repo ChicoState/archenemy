@@ -1,13 +1,10 @@
 -- Insert sample users
-INSERT INTO Users (id, name, profile_picture, profile_desc) VALUES
-    (1, 'Alice Chen', 'https://example.com/alice.jpg', 'Software engineer passionate about Rust and systems programming'),
-    (2, 'Bob Smith', 'https://example.com/bob.jpg', 'Full-stack developer with focus on web security'),
-    (3, 'Carol Zhang', 'https://example.com/carol.jpg', 'Game developer and graphics programming enthusiast'),
-    (4, 'David Wang', 'https://example.com/david.jpg', 'Backend developer specializing in distributed systems'),
-    (5, 'Eva Martinez', 'https://example.com/eva.jpg', 'DevOps engineer with cloud expertise');
-
--- Reset the Users sequence to account for explicit IDs
-SELECT setval('users_id_seq', 5, true);
+INSERT INTO Users (id, username, display_name, avatar_url, bio) VALUES
+    ('user_1', 'alicechen', 'Alice Chen', 'https://example.com/alice.jpg', 'Software engineer passionate about Rust and systems programming'),
+    ('user_2', 'bobsmith', 'Bob Smith', 'https://example.com/bob.jpg', 'Full-stack developer with focus on web security'),
+    ('user_3', 'carolzhang', 'Carol Zhang', 'https://example.com/carol.jpg', 'Game developer and graphics programming enthusiast'),
+    ('user_4', 'davidwang', 'David Wang', 'https://example.com/david.jpg', 'Backend developer specializing in distributed systems'),
+    ('user_5', 'evamartinez', 'Eva Martinez', 'https://example.com/eva.jpg', 'DevOps engineer with cloud expertise');
 
 -- Insert programming-related tags
 INSERT INTO Tags (name) VALUES
@@ -25,45 +22,54 @@ INSERT INTO Tags (name) VALUES
 -- Associate users with tags
 INSERT INTO UserTags (user_id, tag_name) VALUES
     -- Alice's tags
-    (1, 'rust'),
-    (1, 'systems-programming'),
+    ('user_1', 'rust'),
+    ('user_1', 'systems-programming'),
     -- Bob's tags
-    (2, 'webdev'),
-    (2, 'security'),
+    ('user_2', 'webdev'),
+    ('user_2', 'security'),
     -- Carol's tags
-    (3, 'gamedev'),
-    (3, 'graphics'),
-    (3, 'rust'),
+    ('user_3', 'gamedev'),
+    ('user_3', 'graphics'),
+    ('user_3', 'rust'),
     -- David's tags
-    (4, 'backend'),
-    (4, 'distributed-systems'),
+    ('user_4', 'backend'),
+    ('user_4', 'distributed-systems'),
     -- Eva's tags
-    (5, 'devops'),
-    (5, 'cloud'),
-    (5, 'backend');
+    ('user_5', 'devops'),
+    ('user_5', 'cloud'),
+    ('user_5', 'backend');
 
 -- Create some user connections through likes
 INSERT INTO UserLikes (user_id, target_user_id) VALUES
     -- Alice likes Bob and Carol's profiles
-    (1, 2),
-    (1, 3),
+    ('user_1', 'user_2'),
+    ('user_1', 'user_3'),
     -- Bob likes Alice's profile
-    (2, 1),
+    ('user_2', 'user_1'),
     -- Carol likes Alice and Eva's profiles
-    (3, 1),
-    (3, 5),
+    ('user_3', 'user_1'),
+    ('user_3', 'user_5'),
     -- David likes Eva and Bob's profiles
-    (4, 5),
-    (4, 2),
+    ('user_4', 'user_5'),
+    ('user_4', 'user_2'),
     -- Eva likes David's profile
-    (5, 4);
+    ('user_5', 'user_4');
 
 -- Add some dislikes to demonstrate incompatibilities
 INSERT INTO UserDislikes (user_id, target_user_id) VALUES
     -- Alice dislikes David's profile
-    (1, 4),
+    ('user_1', 'user_4'),
     -- Bob dislikes Eva's profile
-    (2, 5),
+    ('user_2', 'user_5'),
     -- Eva dislikes Carol's profile
-    (5, 3);
+    ('user_5', 'user_3');
+
+-- Add sample dislike tags to provide feedback on why users disliked profiles
+INSERT INTO UserDislikeTags (user_id, target_user_id, tag_name) VALUES
+    -- Alice dislikes David because of distributed-systems
+    ('user_1', 'user_4', 'distributed-systems'),
+    -- Bob dislikes Eva because of cloud
+    ('user_2', 'user_5', 'cloud'),
+    -- Eva dislikes Carol because of gamedev
+    ('user_5', 'user_3', 'gamedev');
 

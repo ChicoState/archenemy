@@ -31,6 +31,18 @@ warning() {
     echo -e "${YELLOW}Warning: $1${NC}"
 }
 
+# Function to dump remote database
+dump_remote_db() {
+    local remote_url="$1"
+    local dump_file="$2"
+    
+    info "Dumping remote database to $dump_file..."
+    if ! pg_dump --no-owner --no-acl "$remote_url" > "$dump_file"; then
+        error "Failed to dump remote database"
+    fi
+    success "Remote database dumped successfully"
+}
+
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -38,25 +50,30 @@ command_exists() {
 
 # Help message
 show_help() {
-    echo "Usage: $0 <seed-file> [options]"
+    echo "Usage: $0 [seed-file] [options]"
     echo
     echo "Options:"
     echo "  -h, --help        Show this help message"
     echo "  -y, --yes         Skip confirmation prompts"
     echo "  --no-clear        Skip database clearing"
+    echo "  -r, --remote URL  Fetch data from remote database URL"
     echo
     echo "Environment variables:"
-    echo "  DATABASE_URL      Database connection URL"
+    echo "  DATABASE_URL      Local database connection URL"
+    echo "  REMOTE_DB_URL     Remote database connection URL (can be used instead of -r option)"
     echo
-    echo "Example:"
-    echo "  $0 seed.sql"
-    echo "  DATABASE_URL=postgres://user:pass@localhost:5432/db $0 seed.sql -y"
+    echo "Examples:"
+    echo "  $0 seed.sql                                             # Use local seed file"
+    echo "  $0 -r postgres://user:pass@remote-host/db               # Use remote database"
+    echo "  REMOTE_DB_URL=postgres://user:pass@remote-host/db $0    # Use remote database via env var"
 }
 
 # Process command line arguments
 SKIP_CONFIRM=0
 CLEAR_DB=1
 SEED_FILE=""
+REMOTE_DB_URL=""
+USE_REMOTE=0
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -72,8 +89,16 @@ while [[ $# -gt 0 ]]; do
             CLEAR_DB=0
             shift
             ;;
+        -r|--remote)
+            USE_REMOTE=1
+            if [[ -n "$2" && "${2:0:1}" != "-" ]]; then
+                REMOTE_DB_URL="$2"
+                shift
+            fi
+            shift
+            ;;
         *)
-            if [[ -z "$SEED_FILE" ]]; then
+            if [[ -z "$SEED_FILE" && $USE_REMOTE -eq 0 ]]; then
                 SEED_FILE="$1"
             else
                 error "Unexpected argument: $1"
@@ -83,23 +108,50 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Check for remote URL in environment if not provided via CLI
+if [[ $USE_REMOTE -eq 1 && -z "$REMOTE_DB_URL" ]]; then
+    if [[ -n "${REMOTE_DB_URL:-}" ]]; then
+        REMOTE_DB_URL="${REMOTE_DB_URL}"
+    else
+        read -p "Enter remote database URL: " REMOTE_DB_URL
+        if [[ -z "$REMOTE_DB_URL" ]]; then
+            error "Remote database URL is required when using -r/--remote option"
+        fi
+    fi
+fi
+
 # Check if psql is installed
 if ! command_exists psql; then
     error "PostgreSQL client (psql) is not installed"
 fi
 
-# Validate seed file
-if [[ -z "$SEED_FILE" ]]; then
-    show_help
-    exit 1
+# Validate inputs
+if [[ $USE_REMOTE -eq 0 ]]; then
+    if [[ -z "$SEED_FILE" ]]; then
+        show_help
+        exit 1
+    fi
+
+    if [[ ! -f "$SEED_FILE" ]]; then
+        error "Seed file '$SEED_FILE' not found"
+    fi
+
+    if [[ ! -r "$SEED_FILE" ]]; then
+        error "Cannot read seed file '$SEED_FILE'. Check permissions"
+    fi
 fi
 
-if [[ ! -f "$SEED_FILE" ]]; then
-    error "Seed file '$SEED_FILE' not found"
-fi
-
-if [[ ! -r "$SEED_FILE" ]]; then
-    error "Cannot read seed file '$SEED_FILE'. Check permissions"
+# Check if pg_dump is installed when using remote option
+if [[ $USE_REMOTE -eq 1 ]]; then
+    if ! command_exists pg_dump; then
+        error "PostgreSQL client utilities (pg_dump) are not installed"
+    fi
+    
+    # Test remote database connection
+    info "Testing remote database connection..."
+    if ! psql "$REMOTE_DB_URL" -c '\q' >/dev/null 2>&1; then
+        error "Failed to connect to remote database. Please check your connection URL"
+    fi
 fi
 
 # Get database URL
@@ -132,7 +184,7 @@ fi
 
 # Clear database if requested
 if [[ $CLEAR_DB -eq 1 ]]; then
-    info "Clearing database..."
+    info "Clearing database data (preserving structure and relationships)..."
     psql "$DATABASE_URL" <<EOF
 DO \$\$ 
 DECLARE
@@ -141,9 +193,14 @@ BEGIN
     -- Disable triggers
     SET session_replication_role = 'replica';
     
-    -- Drop all tables in public schema
-    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-        EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
+    -- Truncate all tables in public schema
+    FOR r IN (
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = 'public'
+        ORDER BY tablename
+    ) LOOP
+        EXECUTE 'TRUNCATE TABLE public.' || quote_ident(r.tablename) || ' CASCADE';
     END LOOP;
 
     -- Reset sequences
@@ -158,10 +215,31 @@ EOF
     success "Database cleared successfully"
 fi
 
-# Execute seed file
-info "Applying seed file: $SEED_FILE"
-if psql "$DATABASE_URL" < "$SEED_FILE"; then
-    success "Seed applied successfully!"
+# Execute seed data
+if [[ $USE_REMOTE -eq 1 ]]; then
+    # Create a temporary dump file
+    TEMP_DUMP=$(mktemp /tmp/db_dump_XXXXXX.sql)
+    trap 'rm -f "$TEMP_DUMP"' EXIT
+    
+    # Dump remote database
+    dump_remote_db "$REMOTE_DB_URL" "$TEMP_DUMP"
+    
+    # Apply the dump to local database
+    info "Applying remote database dump to local database..."
+    if psql "$DATABASE_URL" < "$TEMP_DUMP"; then
+        success "Remote data imported successfully!"
+    else
+        error "Failed to import remote data"
+    fi
+    
+    # Clean up
+    rm -f "$TEMP_DUMP"
 else
-    error "Failed to apply seed file"
+    # Execute seed file
+    info "Applying seed file: $SEED_FILE"
+    if psql "$DATABASE_URL" < "$SEED_FILE"; then
+        success "Seed applied successfully!"
+    else
+        error "Failed to apply seed file"
+    fi
 fi
