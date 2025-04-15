@@ -115,7 +115,7 @@ pub struct NemesisTag {
     responses(
         (status = 200, description = "Get current user, create new if not exists", body = User),
         (status = 401, description = "Unauthorized"),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -167,8 +167,8 @@ pub async fn get_current_user(
     responses(
         (status = 200, description = "Get user of id `user_id`", body = User),
         (status = 401, description = "Unauthorized"),
-        (status = 404, description = "User not found", body = Error),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 404, description = "User not found", body = Error, example = json!(Error::NotFound { resource: "User with ID abc123def456".to_string() })),
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -214,10 +214,10 @@ pub async fn get_user(
     tag=crate::tags::USER,
     responses(
         (status = 200, description = "Update current user, return the updated version", body = User),
-        (status = 400, description = "Validation error, in other words, bad request", body = Error),
+        (status = 400, description = "Validation error, in other words, bad request", body = Error, example = json!(Error::Validation { field: "username".to_string(), message: "Username cannot be empty".to_string() })),
         (status = 401, description = "Unauthorized"),
-        (status = 404, description = "User not found", body = Error),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 404, description = "User not found", body = Error, example = json!(Error::NotFound { resource: "User with ID abc123def456".to_string() })),
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -262,7 +262,7 @@ pub async fn update_current_user(
     responses(
         (status = 200, description = "Return a list of tags with their corresponding counts", body = Vec<TagCount>),
         (status = 401, description = "Unauthorized"),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -300,7 +300,7 @@ pub async fn get_all_tags(
     responses(
         (status = 200, description = "Return a list of tags that is nemesis of the given tag id semantically, with a given score", body = Vec<NemesisTag>),
         (status = 401, description = "Unauthorized"),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -344,8 +344,8 @@ pub async fn get_nemesis_tags(
     responses(
         (status = 200, description = "Get a list of tags thats attributed to user of id `user_id`", body = Vec<UserTag>),
         (status = 401, description = "Unauthorized"),
-        (status = 404, description = "User not found", body = Error),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 404, description = "User not found", body = Error, example = json!(Error::NotFound { resource: "User with ID abc123def456".to_string() })),
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -385,8 +385,8 @@ pub async fn get_user_tags(
     responses(
         (status = 200, description = "Get tags of the current user", body = Vec<UserTag>),
         (status = 401, description = "Unauthorized"),
-        (status = 404, description = "User not found", body = Error),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 404, description = "User not found", body = Error, example = json!(Error::NotFound { resource: "User with ID abc123def456".to_string() })),
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -433,9 +433,9 @@ pub async fn get_current_user_tags(
     request_body = AddTagRequest,
     responses(
         (status = 200, description = "Add a tag to the current user", body = UserTag),
-        (status = 400, description = "Validation error, tag name cannot be empty", body = Error),
+        (status = 400, description = "Validation error, tag name cannot be empty", body = Error, example = json!(Error::Validation { field: "tag_name".to_string(), message: "Tag name cannot be empty".to_string() })),
         (status = 401, description = "Unauthorized"),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -483,7 +483,7 @@ pub async fn add_current_user_tag(
     responses(
         (status = 204, description = "Tags successfully removed"),
         (status = 401, description = "Unauthorized"),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -523,7 +523,7 @@ pub async fn remove_current_user_tags(
     responses(
         (status = 200, description = "Get potential nemeses for the current user", body = Vec<UserWithTags>),
         (status = 401, description = "Unauthorized"),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -579,10 +579,10 @@ pub async fn get_potential_nemeses(
     ),
     responses(
         (status = 200, description = "User successfully liked", body = UserLike),
-        (status = 400, description = "Cannot like yourself", body = Error),
+        (status = 400, description = "Cannot like yourself", body = Error, example = json!(Error::Validation { field: "target_user_id".to_string(), message: "Cannot like yourself".to_string() })),
         (status = 401, description = "Unauthorized"),
-        (status = 404, description = "Target user not found", body = Error),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 404, description = "Target user not found", body = Error, example = json!(Error::NotFound { resource: "User with ID abc123def456".to_string() })),
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -638,10 +638,10 @@ pub async fn like_user(
     ),
     responses(
         (status = 200, description = "User successfully disliked", body = UserDislike),
-        (status = 400, description = "Cannot dislike yourself", body = Error),
+        (status = 400, description = "Cannot dislike yourself", body = Error, example = json!(Error::Validation { field: "target_user_id".to_string(), message: "Cannot dislike yourself".to_string() })),
         (status = 401, description = "Unauthorized"),
-        (status = 404, description = "Target user not found", body = Error),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 404, description = "Target user not found", body = Error, example = json!(Error::NotFound { resource: "User with ID abc123def456".to_string() })),
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -700,10 +700,10 @@ pub async fn dislike_user(
     request_body = AddTagsRequest,
     responses(
         (status = 200, description = "User successfully disliked with tags", body = Vec<UserDislikeTag>),
-        (status = 400, description = "Cannot dislike yourself", body = Error),
+        (status = 400, description = "Cannot dislike yourself", body = Error, example = json!(Error::Validation { field: "target_user_id".to_string(), message: "Cannot dislike yourself".to_string() })),
         (status = 401, description = "Unauthorized"),
-        (status = 404, description = "Target user not found", body = Error),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 404, description = "Target user not found", body = Error, example = json!(Error::NotFound { resource: "User with ID abc123def456".to_string() })),
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -770,7 +770,7 @@ pub async fn dislike_user_with_tags(
     responses(
         (status = 200, description = "Get users liked by the current user", body = Vec<UserWithLikedAt>),
         (status = 401, description = "Unauthorized"),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])
@@ -819,7 +819,7 @@ pub async fn get_liked_users(
     responses(
         (status = 200, description = "Get users disliked by the current user", body = Vec<UserWithDislikedAt>),
         (status = 401, description = "Unauthorized"),
-        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error)
+        (status = 500, description = "Internal server error, this usually indicates something wrong with the database", body = Error, example = json!(Error::Database { message: "Database connection failed".to_string() }))
     ),
     security(
         ("firebase_auth_token" = [])

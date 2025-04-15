@@ -47,7 +47,7 @@ pub fn routes(access_id: &str, secret_access_key: &str) -> OpenApiRouter<Archene
 /// ```
 #[utoipa::path(get, path="/{object}", tag=crate::tags::STORAGE, responses(
     (status = 200, description = "File found and returned", body = [u8]),
-    (status = 500, description = "Internal server error", body = Error),
+    (status = 500, description = "Internal server error", body = Error, example=json!(Error::Database { message: "S3 bucket error".to_string() })),
 ))]
 async fn get_object(
     Extension(bucket): Extension<BucketExtension>,
@@ -84,10 +84,10 @@ struct UploadForm {
     put,
     path = "/",
     tag = crate::tags::STORAGE,
-    request_body = UploadForm,
+    request_body(content = UploadForm, content_type = "multipart/form-data"),
     responses(
         (status = 200, description = "File uploaded successfully", body = types::PutResponse),
-        (status = 500, description = "Internal server error", body = Error),
+        (status = 500, description = "Internal server error", body = Error, example=json!(Error::Database { message: "S3 bucket error".to_string() })),
     ),
 )]
 async fn put_object(
