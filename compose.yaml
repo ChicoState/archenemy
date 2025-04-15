@@ -9,10 +9,7 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
-    command: >
-      postgres 
-      -c 'max_connections=100' 
-      -c 'host all all all trust'
+    command: postgres 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d archenemy"]
       interval: 5s
@@ -30,7 +27,7 @@ services:
         condition: service_healthy
     environment:
       # Override the database URL to connect to the container service instead of Neon
-      NEON_POSTGRES_URL: "postgresql://postgres:password@database:5432/archenemy"
+      NEON_POSTGRES_URL: "postgresql://postgres:password@database:5432/archenemy?sslmode=disable"
     develop:
       watch:
         - path: ./src
