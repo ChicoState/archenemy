@@ -2,10 +2,10 @@ use pgvector::Vector;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::{FromRow, Type};
 use sqlx::types::chrono::{DateTime, Utc};
-use utoipa::ToSchema;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::ops::Deref;
+use utoipa::ToSchema;
 
 pub trait Wrapped<Inner>: Deref + Sized + Validate {
     type Error;
