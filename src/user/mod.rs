@@ -1,37 +1,59 @@
 use crate::types::ArchenemyState;
-use axum::{
-    routing::{delete, get, patch, post},
-    Router,
-};
+use utoipa_axum::{router::OpenApiRouter, routes};
 
+/// User-related API handlers
 mod handlers;
+/// User data structures and type definitions
 mod types;
+/// User business logic and database operations
 mod utils;
 
-// TODO: Endpoint to check whether user exists
-pub fn routes() -> Router<ArchenemyState> {
-    Router::<ArchenemyState>::new()
-        // User routes
-        .route("/user/me", get(handlers::get_current_user))
-        .route("/user/{user_id}", get(handlers::get_user))
-        .route("/user/me", patch(handlers::update_current_user))
-        // Tag routes
-        .route("/tags", get(handlers::get_all_tags))
-        .route("/tags/{tag_name}/nemesis", get(handlers::get_nemesis_tags))
-        .route("/user/{user_id}/tags", get(handlers::get_user_tags))
-        .route("/user/me/tags", post(handlers::add_user_tag))
-        .route(
-            "/user/me/tags/{tag_name}",
-            delete(handlers::remove_user_tag),
-        )
-        // Nemesis routes
-        .route("/nemeses/discover", get(handlers::get_potential_nemeses))
-        .route("/nemeses/like/{user_id}", post(handlers::like_user))
-        .route("/nemeses/dislike/{user_id}", post(handlers::dislike_user))
-        .route(
-            "/nemeses/dislike/{user_id}/tags",
-            post(handlers::dislike_user_with_tags),
-        )
-        .route("/nemeses/likes", get(handlers::get_liked_users))
-        .route("/nemeses/dislikes", get(handlers::get_disliked_users))
+// TODO: Implement endpoint to check whether user exists (GET /user/{username}/exists)
+/// Configure and return the router for all user-related API endpoints
+///
+/// This function sets up the OpenApiRouter with all user-related routes including:
+/// - User profile management (get/update)
+/// - Tag management (get/add/remove)
+/// - Nemesis interaction (discover/like/dislike)
+/// - Relationship management (likes/dislikes)
+///
+/// All routes require authentication via Firebase Auth.
+pub fn routes() -> OpenApiRouter<ArchenemyState> {
+    OpenApiRouter::<ArchenemyState>::new()
+        // User profile routes
+        // GET/PUT /user/me - Get or update current user profile
+        .routes(routes!(
+            handlers::get_current_user,
+            handlers::update_current_user
+        ))
+        // GET /user/{user_id} - Get another user's profile
+        .routes(routes!(handlers::get_user))
+        // Tag system routes
+        // GET /tags - Get all tags in the system
+        .routes(routes!(handlers::get_all_tags))
+        // GET /tags/{tag_name}/nemesis - Get semantically opposite tags
+        .routes(routes!(handlers::get_nemesis_tags))
+        // GET /user/{user_id}/tags - Get tags for a specific user
+        .routes(routes!(handlers::get_user_tags))
+        // Current user tag management
+        // GET/POST/DELETE /user/me/tags - Manage current user's tags
+        .routes(routes!(
+            handlers::add_current_user_tag,
+            handlers::get_current_user_tags,
+            handlers::remove_current_user_tags
+        ))
+        // Nemesis discovery and interaction
+        // GET /nemeses - Get potential nemeses
+        .routes(routes!(handlers::get_potential_nemeses))
+        // POST /user/{user_id}/like - Like a potential nemesis
+        .routes(routes!(handlers::like_user))
+        // POST /user/{user_id}/dislike - Dislike a potential nemesis
+        .routes(routes!(handlers::dislike_user))
+        // POST /user/{user_id}/dislike/tags - Dislike with specific tags
+        .routes(routes!(handlers::dislike_user_with_tags))
+        // Relationship history
+        // GET /user/me/likes - Get users the current user has liked
+        .routes(routes!(handlers::get_liked_users))
+        // GET /user/me/dislikes - Get users the current user has disliked
+        .routes(routes!(handlers::get_disliked_users))
 }

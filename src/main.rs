@@ -3,7 +3,13 @@ use axum::Router;
 use firebase_auth::{FirebaseAuth, FirebaseAuthState};
 
 use sqlx::postgres::PgPoolOptions;
+use utoipa_swagger_ui::SwaggerUi;
 use std::sync::Arc;
+use utoipa::{
+    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
+    Modify, OpenApi,
+};
+use utoipa_axum::router::OpenApiRouter;
 
 #[cfg(not(feature = "local"))]
 use shuttle_runtime::SecretStore;
@@ -34,6 +40,30 @@ mod local {
     }
 }
 
+#[derive(OpenApi)]
+#[openapi(
+    modifiers(&SecurityAddon),
+    tags(
+        (name = archenemy::tags::USER, description = "User related endpoints"),
+        (name = archenemy::tags::TAGS, description = "Tag related endpoints"),
+        (name = archenemy::tags::STORAGE, description = "Storage related endpoints")
+    ),
+)]
+struct ApiDoc;
+
+struct SecurityAddon;
+
+impl Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        if let Some(components) = openapi.components.as_mut() {
+            components.add_security_scheme(
+                "firebase_auth_token",
+                SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Authorization"))),
+            )
+        }
+    }
+}
+
 // Create common setup function to be used by both local and shuttle
 async fn setup_app(
     db_url: &str,
@@ -57,16 +87,22 @@ async fn setup_app(
 
     let firebase_auth = Arc::new(FirebaseAuth::new(firebase_auth_id).await);
 
-    Router::new()
-        .nest(
-            "/storage",
-            archenemy::storage::routes(storage_access_id, storage_access_token),
-        )
-        .merge(archenemy::user::routes())
-        .with_state(ArchenemyState {
-            auth: FirebaseAuthState { firebase_auth },
-            pool,
-        })
+    let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi()).nest(
+        "/api/v1",
+        OpenApiRouter::new()
+            .nest(
+                "/storage",
+                archenemy::storage::routes(storage_access_id, storage_access_token),
+            )
+            .merge(archenemy::user::routes())
+            .with_state(ArchenemyState {
+                auth: FirebaseAuthState { firebase_auth },
+                pool: pool.clone(),
+            }),
+    ).split_for_parts();
+
+    router.merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", api))
+
 }
 
 #[cfg(not(feature = "local"))]
