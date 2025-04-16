@@ -1,5 +1,10 @@
 [![Clippy check](https://github.com/ChicoState/archenemy/actions/workflows/ci.yml/badge.svg)](https://github.com/ChicoState/archenemy/actions/workflows/ci.yml)
 
+> ![WARNING]
+> I just made a major api change!
+> Basically everything is prefixed with `/api/v1`
+>
+
 # Archenemy 
 
 A matching platform that helps you find your nemesis!
@@ -61,4 +66,8 @@ To initialize your database with sample data:
 ./scripts/seed --help  # Show all available options
 ./scripts/seed seed/0x01.seed --no-clear  # Seed without clearing existing data
 ./scripts/seed seed/0x01.seed --yes  # Skip confirmation prompts
+```
 
+## Api Docs
+
+It will be in the uri: `/swagger-ui`, make sure to prefix with the correct domain. In our case, the remote server is: `archenemy-zusg.shuttle.app`.
