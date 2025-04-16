@@ -17,19 +17,33 @@ class Profile {
     bio = bio_;
   }
 
-  // Not a particularly great implementation
+  // Improved implementation
   factory Profile.fromJson(String raw) {
     try {
-      var map = json.decode(raw);
+      // Decode the raw JSON string into a Map
+      final map = json.decode(raw) as Map<String, dynamic>;
+
       return Profile(
-          map.name, DateTime.parse(map.birthDate), map.bio, map.interests);
+        map['name'] as String,
+        DateTime.parse(map['birthDate'] as String),
+        map['bio'] as String,
+        List<String>.from(map['interests'] as List),
+      );
     } catch (err) {
       log.e("Profile JSON parsing error: $err");
       rethrow;
     }
   }
+
   String toJson() {
-    return json.encode({name, birthDate, bio, interests});
+    // Convert the Profile into a Map for JSON encoding
+    final data = <String, dynamic>{
+      'name': name,
+      'birthDate': birthDate.toIso8601String(), // convert DateTime to String
+      'bio': bio,
+      'interests': interests,
+    };
+    return json.encode(data);
   }
 }
 
@@ -166,50 +180,50 @@ class _MyProfileViewState extends State<MyProfileView> {
   }
 }
 
-class ExplorePage extends StatefulWidget {
-  List<Profile> profiles;
-  ExplorePage(this.profiles, {super.key});
+// class ExplorePage extends StatefulWidget {
+//   List<Profile> profiles;
+//   ExplorePage(this.profiles, {super.key});
 
-  @override
-  createState() => _ExplorePageState();
-}
+//   @override
+//   createState() => _ExplorePageState();
+// }
 
-class _ExplorePageState extends State<ExplorePage> {
-  @override
-  build(BuildContext context) {
-    final profiles = widget.profiles;
-    final profileView = profiles.isEmpty
-        ? Center(child: Text("No more profiles!"))
-        : ProfileView(profiles.last);
+// class _ExplorePageState extends State<ExplorePage> {
+//   @override
+//   build(BuildContext context) {
+//     final profiles = widget.profiles;
+//     final profileView = profiles.isEmpty
+//         ? Center(child: Text("No more profiles!"))
+//         : ProfileView(profiles.last);
 
-    return Stack(children: [
-      profileView,
-      Positioned(
-          bottom: 10.0,
-          left: 10.0,
-          child: IconButton.filled(
-              icon: Icon(Icons.close),
-              onPressed: () {
-                log.d("Disiked!");
-                setState(() {
-                  widget.profiles.removeLast();
-                });
-              })),
-      Positioned(
-        bottom: 10.0,
-        right: 10.0,
-        child: IconButton.filled(
-            icon: Icon(Icons.check),
-            onPressed: () {
-              log.d("Liked!");
-              setState(() {
-                widget.profiles.removeLast();
-              });
-            }),
-      )
-    ]);
-  }
-}
+//     return Stack(children: [
+//       profileView,
+//       Positioned(
+//           bottom: 10.0,
+//           left: 10.0,
+//           child: IconButton.filled(
+//               icon: Icon(Icons.close),
+//               onPressed: () {
+//                 log.d("Disiked!");
+//                 setState(() {
+//                   widget.profiles.removeLast();
+//                 });
+//               })),
+//       Positioned(
+//         bottom: 10.0,
+//         right: 10.0,
+//         child: IconButton.filled(
+//             icon: Icon(Icons.check),
+//             onPressed: () {
+//               log.d("Liked!");
+//               setState(() {
+//                 widget.profiles.removeLast();
+//               });
+//             }),
+//       )
+//     ]);
+//   }
+// }
 
 ////////////////////////////////////////////////////
 /// Use: use navigator.push and pass a profile class.
