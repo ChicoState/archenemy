@@ -23,6 +23,6 @@ jobs:
           extra-args: --allow-dirty --debug
           secrets: |
             FIREBASE_AUTH_PROJECT_ID = '${{ secrets.FIREBASE_AUTH_PROJECT_ID }}'
-            STORAGE_ACCESS_TOKEN = '${{STORAGE_ACCESS_TOKEN}}'
+            STORAGE_ACCESS_TOKEN = '${{secrets.STORAGE_ACCESS_TOKEN}}'
             STORAGE_ACCESS_ID = '${{secrets.STORAGE_ACCESS_ID}}'
             NEON_POSTGRES_URL = '${{secrets.NEON_POSTGRES_URL}}'
