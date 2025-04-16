@@ -77,6 +77,7 @@ dependencies = [
  "shuttle-runtime",
  "sqlx",
  "tokio",
+ "tracing",
  "utoipa",
  "utoipa-axum",
  "utoipa-swagger-ui",

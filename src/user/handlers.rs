@@ -1,9 +1,12 @@
+#[cfg(feature = "dummy-auth")]
+use crate::auth::AuthUser;
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
     Json,
 };
-use firebase_auth::FirebaseUser;
+#[cfg(not(feature = "dummy-auth"))]
+use firebase_auth::FirebaseUser as AuthUser;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{DateTime, Utc};
 use utoipa::{IntoParams, ToSchema};
@@ -123,7 +126,7 @@ pub struct NemesisTag {
 )]
 pub async fn get_current_user(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
 ) -> Result<Json<User>, Error> {
     let user_id = user.user_id;
 
@@ -177,7 +180,7 @@ pub async fn get_current_user(
 pub async fn get_user(
     State(state): State<ArchenemyState>,
     Path(user_id): Path<String>,
-    _user: FirebaseUser, // Ensure authenticated
+    _user: AuthUser, // Ensure authenticated
 ) -> Result<Json<User>, Error> {
     let maybe_user = utils::get_user_by_id(&state.pool, &user_id).await?;
 
@@ -225,7 +228,7 @@ pub async fn get_user(
 )]
 pub async fn update_current_user(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Json(update): Json<UpdateUserRequest>,
 ) -> Result<Json<User>, Error> {
     let user_id = user.user_id;
@@ -270,7 +273,7 @@ pub async fn update_current_user(
 )]
 pub async fn get_all_tags(
     State(state): State<ArchenemyState>,
-    _user: FirebaseUser, // Ensure authenticated
+    _user: AuthUser, // Ensure authenticated
 ) -> Result<Json<Vec<TagCount>>, Error> {
     let tags = utils::get_all_tags(&state.pool).await?;
     Ok(Json(tags))
@@ -309,7 +312,7 @@ pub async fn get_all_tags(
 )]
 pub async fn get_nemesis_tags(
     State(state): State<ArchenemyState>,
-    _user: FirebaseUser, // Ensure authenticated
+    _user: AuthUser, // Ensure authenticated
     Path(tag_name): Path<String>,
     Query(pagination): Query<PaginationParams>,
 ) -> Result<Json<Vec<NemesisTag>>, Error> {
@@ -355,7 +358,7 @@ pub async fn get_nemesis_tags(
 pub async fn get_user_tags(
     State(state): State<ArchenemyState>,
     Path(user_id): Path<String>,
-    _user: FirebaseUser, // Ensure authenticated
+    _user: AuthUser, // Ensure authenticated
 ) -> Result<Json<Vec<UserTag>>, Error> {
     // Verify user exists
     let maybe_user = utils::get_user_by_id(&state.pool, &user_id).await?;
@@ -395,7 +398,7 @@ pub async fn get_user_tags(
 )]
 pub async fn get_current_user_tags(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser, // Ensure authenticated
+    user: AuthUser, // Ensure authenticated
 ) -> Result<Json<Vec<UserTag>>, Error> {
     // Verify user exists
     let maybe_user = utils::get_user_by_id(&state.pool, &user.user_id).await?;
@@ -443,7 +446,7 @@ pub async fn get_current_user_tags(
 )]
 pub async fn add_current_user_tag(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Json(request): Json<AddTagRequest>,
 ) -> Result<Json<UserTag>, Error> {
     let user_id = user.user_id;
@@ -491,7 +494,7 @@ pub async fn add_current_user_tag(
 )]
 pub async fn remove_current_user_tags(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Json(names): Json<Vec<String>>,
 ) -> Result<StatusCode, Error> {
     let user_id = user.user_id;
@@ -531,7 +534,7 @@ pub async fn remove_current_user_tags(
 )]
 pub async fn get_potential_nemeses(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Query(pagination): Query<PaginationParams>,
 ) -> Result<Json<Vec<UserWithTags>>, Error> {
     let user_id = user.user_id;
@@ -590,7 +593,7 @@ pub async fn get_potential_nemeses(
 )]
 pub async fn like_user(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Path(target_user_id): Path<String>,
 ) -> Result<Json<UserLike>, Error> {
     let user_id = user.user_id;
@@ -649,7 +652,7 @@ pub async fn like_user(
 )]
 pub async fn dislike_user(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Path(target_user_id): Path<String>,
 ) -> Result<Json<UserDislike>, Error> {
     let user_id = user.user_id;
@@ -712,7 +715,7 @@ pub async fn dislike_user(
 )]
 pub async fn dislike_user_with_tags(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Path(target_user_id): Path<String>,
     Json(request): Json<AddTagsRequest>,
 ) -> Result<Json<Vec<UserDislikeTag>>, Error> {
@@ -779,7 +782,7 @@ pub async fn dislike_user_with_tags(
 )]
 pub async fn get_liked_users(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Query(pagination): Query<PaginationParams>,
 ) -> Result<Json<Vec<UserWithLikedAt>>, Error> {
     let user_id = user.user_id;
@@ -828,7 +831,7 @@ pub async fn get_liked_users(
 )]
 pub async fn get_disliked_users(
     State(state): State<ArchenemyState>,
-    user: FirebaseUser,
+    user: AuthUser,
     Query(pagination): Query<PaginationParams>,
 ) -> Result<Json<Vec<UserWithDislikedAt>>, Error> {
     let user_id = user.user_id;
