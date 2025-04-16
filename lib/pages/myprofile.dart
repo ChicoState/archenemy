@@ -23,7 +23,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
 						Positioned(
 							top: 60,
 							right: 10,
-							child: IconButton(
+							child: IconButton.filled(
 								icon: Icon(Icons.menu),
 								onPressed: () async {
 									await Navigator.push(
@@ -70,14 +70,21 @@ class EditProfile extends StatefulWidget {
 
 class _EditProfileState extends State<EditProfile> {
   DateTime? selectedDate = DateTime.now();
-  String? enteredName = "name";
-  String? enteredBio = "bio";
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController bioController = TextEditingController();
+  late final TextEditingController nameController;
+  late final TextEditingController bioController;
   final GlobalKey<FormState> nameFormKey = GlobalKey<FormState>();
   String? forceErrorText;
   bool isLoading = false;
+  
+  _EditProfileState();
+  
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: widget.myProfile.displayName);
+    bioController = TextEditingController(text: widget.myProfile.bio);
+  }
 
   @override
   void dispose() {
