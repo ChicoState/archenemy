@@ -1,3 +1,5 @@
+#[cfg(feature = "dummy-auth")]
+use crate::auth::AuthUser;
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
@@ -5,8 +7,6 @@ use axum::{
 };
 #[cfg(not(feature = "dummy-auth"))]
 use firebase_auth::FirebaseUser as AuthUser;
-#[cfg(feature = "dummy-auth")]
-use crate::auth::AuthUser;
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{DateTime, Utc};
 use utoipa::{IntoParams, ToSchema};
