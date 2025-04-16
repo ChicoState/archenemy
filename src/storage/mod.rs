@@ -3,16 +3,18 @@ use crate::types::{ArchenemyState, Error};
 use axum::{
     body::Bytes,
     extract::{Multipart, Path},
-    routing::{get, put},
-    Extension, Json, Router,
+    Extension, Json,
 };
 use s3::{creds::Credentials, Bucket};
+use serde::Deserialize;
 use std::sync::Arc;
+use utoipa::ToSchema;
+use utoipa_axum::{router::OpenApiRouter, routes};
 use uuid::Uuid;
 
 type BucketExtension = Arc<Bucket>;
 
-pub fn routes(access_id: &str, secret_access_key: &str) -> Router<ArchenemyState> {
+pub fn routes(access_id: &str, secret_access_key: &str) -> OpenApiRouter<ArchenemyState> {
     let bucket = Bucket::new(
         "archenemy",
         "https://archenemy.nyc3.digitaloceanspaces.com"
@@ -23,12 +25,30 @@ pub fn routes(access_id: &str, secret_access_key: &str) -> Router<ArchenemyState
     )
     .expect("Failed to create bucket");
 
-    Router::new()
-        .route("/{object}", get(get_object))
-        .route("/", put(put_object))
+    OpenApiRouter::new()
+        .routes(routes!(get_object))
+        .routes(routes!(put_object))
         .layer(Extension(Arc::new(*bucket)))
 }
 
+/// Get an object from the bucket.
+///
+/// This api will get path from uri and query it against the s3 backend server.
+///
+/// <div class="warning">
+///
+/// I haven't figured out what is the behavior when file not found
+///
+/// </div>
+///
+/// Example:
+/// ```
+/// GET /api/v1/storage/some_file
+/// ```
+#[utoipa::path(get, path="/{object}", tag=crate::tags::STORAGE, responses(
+    (status = 200, description = "File found and returned", body = [u8]),
+    (status = 500, description = "Internal server error", body = Error, example=json!(Error::Database { message: "S3 bucket error".to_string() })),
+))]
 async fn get_object(
     Extension(bucket): Extension<BucketExtension>,
     Path(object): Path<String>,
@@ -42,7 +62,34 @@ async fn get_object(
     Ok(bytes)
 }
 
-#[axum::debug_handler]
+/// Dummy data represent the form data
+///
+/// Its a form with just one field, `file`, with the value as the file content.
+#[derive(Deserialize, ToSchema)]
+#[allow(unused)]
+struct UploadForm {
+    #[schema(format = Binary, content_media_type = "application/octet-stream")]
+    file: String,
+}
+
+/// Upload file to the bucket.
+///
+/// This api will take a multipart form data and upload the file to the s3 backend server. File
+/// name will be randomly generated and returned in the response. See [`UploadForm`] for form
+/// schema.
+///
+/// (I dont have an example because I don't event know how this looks like, it should be like a
+/// html form with input of type file)
+#[utoipa::path(
+    put,
+    path = "/",
+    tag = crate::tags::STORAGE,
+    request_body(content = UploadForm, content_type = "multipart/form-data"),
+    responses(
+        (status = 200, description = "File uploaded successfully", body = types::PutResponse),
+        (status = 500, description = "Internal server error", body = Error, example=json!(Error::Database { message: "S3 bucket error".to_string() })),
+    ),
+)]
 async fn put_object(
     Extension(bucket): Extension<BucketExtension>,
     mut multipart: Multipart,

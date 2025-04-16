@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'profile.dart';
-import 'matches.dart';
-import 'login.dart';
-import 'api.dart';
-import 'settings.dart';
+
+
+import 'pages/login.dart';
+import 'pages/settings.dart';
+import 'pages/myprofile.dart';
+import 'pages/explore.dart';
+import 'pages/matches.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'auth.dart' as auth;
+import 'api.dart' as api;
+import 'log.dart' as log;
 
 // Global notifier for theme mode
 final ValueNotifier<ThemeMode> themeModeNotifier =
@@ -15,18 +21,26 @@ final ValueNotifier<ThemeMode> themeModeNotifier =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await init(); // this calls Firebase.initializeApp under the hood
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+	
   // Load the saved dark mode preference
   final prefs = await SharedPreferences.getInstance();
   bool isDarkMode = prefs.getBool('darkMode') ?? false;
   themeModeNotifier.value = isDarkMode ? ThemeMode.dark : ThemeMode.light;
 
-  runApp(Root());
+  runApp(MaterialApp(
+		// theme: ThemeData(
+		// 	colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    //   useMaterial3: true,
+		// ),
+		home: Root()
+	));
+	//log.i(await api.getMyProfile());
 }
 
-class Root extends StatelessWidget {
+class Root extends StatefulWidget {
   const Root({super.key});
+<<<<<<< HEAD
 
   @override
   Widget build(BuildContext ctx) {
@@ -45,57 +59,63 @@ class Root extends StatelessWidget {
         );
       },
     );
+=======
+	@override State<Root> createState() => RootState();
+	
+}
+class RootState extends State<Root> {
+	@override void initState() {
+		super.initState();
+		auth.stateChanges.listen((dynamic _) {
+			// This is a mild anti-pattern
+			setState(() {});
+		});
+	}
+	
+	@override Widget build(BuildContext ctx) {
+    if (auth.hasUser) {
+			return App();
+		} else {
+			return LoginPage();
+		}
+>>>>>>> 52f4e98cbf55dfa5e4ed32d8d334ed260f8ce8c2
   }
 }
 
 class App extends StatefulWidget {
   const App({super.key});
-
-  @override
-  State<App> createState() => AppState();
+	@override State<App> createState() => AppState();
 }
 
 class AppState extends State<App> {
-  int pageIdx = 2;
-  List<Widget Function()> pageBuilders = [
-    () => SettingsScreen(),
-    () => MyProfileView(
-        Profile("My Profile", DateTime.now(), "My Bio", ["My1", "My2", "My3"])),
-    //() => ProfileView(Profile("Example Profile", DateTime.now(), "Example Bio", ["Ex1", "Ex2", "Ex3", "Ex4"])),
-    () => ExplorePage([
-          Profile("Example Profile #2", DateTime.now(), "Example Bio #2",
-              ["Interest #1", "Interest #2", "Interest #3", "Interest #4"]),
-          Profile("Example Profile #1", DateTime.now(), "Example Bio",
-              ["Ex1", "Ex2", "Ex3", "Ex4"]),
-        ]),
-    () => MatchesPage([
-          Profile("Match 1", DateTime.now(), "Example Bio", ["I1", "I2"]),
-          Profile("Match 2", DateTime.now(), "Example Bio", ["I1", "I2"]),
-          Profile("Match 3", DateTime.now(), "Example Bio", ["I1", "I2"]),
-        ])
-  ];
+
+  
+	int pageIdx = 2;
+	final List<Widget Function()> pages = [
+		() => SettingsPage(),
+		() => MyProfilePage(),
+		() => ExplorePage(),
+		() => MatchesPage(),
+	];
+	final List<BottomNavigationBarItem> icons = [
+		BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+		BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+		BottomNavigationBarItem(icon: Icon(Icons.star), label: "Explore"),
+		BottomNavigationBarItem(icon: Icon(Icons.heart_broken), label: "Matches"),
+	];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: pageBuilders[pageIdx](),
+      body: pages[pageIdx](),
       bottomNavigationBar: BottomNavigationBar(
         // for unknown reasons the navbar becomes (mostly) invisible when in "shifting" mode
         type: BottomNavigationBarType.fixed,
         currentIndex: pageIdx,
         onTap: (int idx) {
-          setState(() {
-            pageIdx = idx;
-          });
+          setState(() => pageIdx = idx);
         },
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: "Settings"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: "Explore"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.heart_broken), label: "Matches"),
-        ],
+        items: icons
       ),
     );
   }

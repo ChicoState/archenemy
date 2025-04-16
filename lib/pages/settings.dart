@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'auth_service.dart';
-import 'login.dart';
+import '../auth.dart';
 import '../main.dart'; // Import to access themeModeNotifier
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatelessWidget {
-  final AuthService authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -83,10 +81,10 @@ class SettingsScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onPressed: () async {
-                    await authService.signOut();
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => LoginPage()),
-                    );
+                    await signOut();
+                    // Navigator.of(context).pushReplacement(
+                    //   MaterialPageRoute(builder: (_) => LoginPage()),
+                    // );
                   },
                   child: Text(
                     "Logout",

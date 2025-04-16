@@ -3,6 +3,7 @@ use axum::{http::StatusCode, response::IntoResponse};
 use firebase_auth::FirebaseAuthState;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+use utoipa::ToSchema;
 
 #[derive(Clone, FromRef)]
 pub struct ArchenemyState {
@@ -10,7 +11,7 @@ pub struct ArchenemyState {
     pub auth: FirebaseAuthState,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, ToSchema)]
 #[non_exhaustive]
 pub enum Error {
     Unauthenticated,

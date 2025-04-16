@@ -217,14 +217,14 @@ pub async fn add_user_tag(pool: &PgPool, user_id: &str, tag_name: &str) -> Resul
     Ok(result)
 }
 
-pub async fn remove_user_tag(pool: &PgPool, user_id: &str, tag_name: &str) -> Result<()> {
+pub async fn remove_user_tag(pool: &PgPool, user_id: &str, names: &[String]) -> Result<()> {
     sqlx::query!(
         r#"
         DELETE FROM UserTags
-        WHERE user_id = $1 AND tag_name = $2
+        WHERE user_id = $1 AND tag_name = ANY($2)
         "#,
         user_id,
-        tag_name
+        names
     )
     .execute(pool)
     .await?;
