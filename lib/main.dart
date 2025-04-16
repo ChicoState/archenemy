@@ -6,10 +6,22 @@ import 'matches.dart';
 import 'login.dart';
 import 'api.dart';
 import 'settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+
+// Global notifier for theme mode
+final ValueNotifier<ThemeMode> themeModeNotifier =
+    ValueNotifier(ThemeMode.light);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await init(); // this calls Firebase.initializeApp under the hood
+
+  // Load the saved dark mode preference
+  final prefs = await SharedPreferences.getInstance();
+  bool isDarkMode = prefs.getBool('darkMode') ?? false;
+  themeModeNotifier.value = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+
   runApp(Root());
 }
 
@@ -18,12 +30,21 @@ class Root extends StatelessWidget {
 
   @override
   Widget build(BuildContext ctx) {
-    return MaterialApp(
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
-        ),
-        home: LoginPage());
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeModeNotifier,
+      builder: (context, currentTheme, child) {
+        return MaterialApp(
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData.dark(),
+          // Here, 'currentTheme' is the local variable provided by the builder
+          themeMode: currentTheme,
+          home: LoginPage(),
+        );
+      },
+    );
   }
 }
 
