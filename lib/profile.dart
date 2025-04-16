@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'log.dart';
 
@@ -154,7 +155,11 @@ class _MyProfileViewState extends State<MyProfileView> {
                     MaterialPageRoute(
                         builder: (context) => EditProfile(
                               myProfile: myProfile,
-                            )));
+                            ))).then((_) {
+                  setState(() {
+                    myProfile;
+                  });
+                });
               },
               icon: Icon(Icons.menu)))
     ]);
@@ -238,6 +243,7 @@ class _EditProfileState extends State<EditProfile> {
   final GlobalKey<FormState> nameFormKey = GlobalKey<FormState>();
   String? forceErrorText;
   bool isLoading = false;
+  HorizontalTagDisplay tags = HorizontalTagDisplay();
 
   @override
   void dispose() {
@@ -298,22 +304,24 @@ class _EditProfileState extends State<EditProfile> {
         widget.myProfile.name = nameController.text;
         widget.myProfile.birthDate = selectedDate ?? DateTime.now();
         widget.myProfile.bio = bioController.text;
+        widget.myProfile.interests = tags.tags;
         //print("Saved");
       });
     }
   }
 
   Future<String?> validateUsernameFromServer(String username) async {
-    final Set<String> takenUsernames = <String>{'jack', 'alex'};
+    // final Set<String> takenUsernames = <String>{'jack', 'alex'};
 
-    await Future<void>.delayed(Duration(seconds: 1));
+    // await Future<void>.delayed(Duration(seconds: 1));
 
-    final bool isValid = !takenUsernames.contains(username);
-    if (isValid) {
-      return null;
-    }
+    // final bool isValid = !takenUsernames.contains(username);
+    // if (isValid) {
+    //   return null;
+    // }
 
-    return 'Username $username is already taken';
+    // return 'Username $username is already taken';
+    return null;
   }
 
   Future<void> _selectDate() async {
@@ -367,6 +375,7 @@ class _EditProfileState extends State<EditProfile> {
                         validator: bioValidator,
                         onChanged: onChanged,
                       ),
+                      tags,
                       Text(
                         selectedDate != null
                             ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
@@ -381,9 +390,89 @@ class _EditProfileState extends State<EditProfile> {
                         TextButton(
                           onPressed: onSave,
                           child: Text('Save'),
-                        )
+                        ),
                     ]))),
       ),
     );
+  }
+}
+
+class HorizontalTagDisplay extends StatefulWidget {
+  HorizontalTagDisplay({super.key});
+  final List<String> tags = [];
+  @override
+  State<HorizontalTagDisplay> createState() => _HorizontalTagDisplayState();
+}
+
+class _HorizontalTagDisplayState extends State<HorizontalTagDisplay> {
+  //List<String> tags = ["One", "Two", "three"];
+  // void pushTag(String name) {}
+  final TextEditingController tagsController = TextEditingController();
+  updateTags() {
+    setState(() {
+      widget.tags;
+    });
+  }
+
+  void addTag(String val) {
+    widget.tags.add(val);
+    tagsController.text = "";
+
+    setState(() {
+      tagsController;
+      widget.tags;
+    });
+  }
+
+  popTag(String t) {
+    widget.tags.remove(t);
+    updateTags();
+  }
+
+  Widget tag(String text) {
+    return Container(
+      alignment: Alignment.center,
+      padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        children: [
+          Text(text),
+          IconButton(onPressed: () => popTag(text), icon: Icon(Icons.close))
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+        width: MediaQuery.sizeOf(context).width - 16,
+        height: 100,
+        child: Column(
+          children: [
+            TextFormField(
+              controller: tagsController,
+              textInputAction: TextInputAction.search,
+              onFieldSubmitted: (newValue) => addTag(tagsController.text),
+              decoration: const InputDecoration(
+                border: UnderlineInputBorder(),
+                labelText: 'Likes and Dislikes',
+              ),
+            ),
+            SizedBox(
+              height: 35,
+              child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.tags.length,
+                  padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                  itemBuilder: (BuildContext context, int index) {
+                    return tag(widget.tags[index]);
+                  }),
+            )
+          ],
+        ));
   }
 }
