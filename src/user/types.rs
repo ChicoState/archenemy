@@ -5,6 +5,7 @@ use sqlx::types::chrono::{DateTime, Utc};
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::ops::Deref;
+use utoipa::ToSchema;
 
 pub trait Wrapped<Inner>: Deref + Sized + Validate {
     type Error;
@@ -126,7 +127,7 @@ impl Validate for Email {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, ToSchema)]
 #[sqlx(transparent)]
 pub struct Url(String);
 
@@ -194,7 +195,7 @@ impl Validate for Url {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, ToSchema)]
 #[sqlx(transparent)]
 pub struct TagName(String);
 
@@ -264,36 +265,39 @@ impl Validate for TagName {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, Type, ToSchema)]
 pub struct User {
     pub id: String,
     pub username: String,
     pub display_name: Option<String>,
     pub avatar_url: Url,
     pub bio: String,
+    #[schema(value_type=Vec<f32>)]
     pub embedding: Option<Vector>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct CreateUserRequest {
     pub id: String,
     pub username: String,
     pub display_name: Option<String>,
+    #[schema(inline)]
     pub avatar_url: Option<Url>,
     pub bio: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct UpdateUserRequest {
     pub username: Option<String>,
     pub display_name: Option<String>,
+    #[schema(inline)]
     pub avatar_url: Option<Url>,
     pub bio: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct UserTag {
     pub id: i32,
     pub user_id: String,
@@ -301,7 +305,7 @@ pub struct UserTag {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct UserLike {
     pub id: i32,
     pub user_id: String,
@@ -309,7 +313,7 @@ pub struct UserLike {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct UserDislike {
     pub id: i32,
     pub user_id: String,
@@ -317,23 +321,25 @@ pub struct UserDislike {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct UserDislikeTag {
     pub id: i32,
     pub user_id: String,
     pub target_user_id: String,
+    #[schema(inline)]
     pub tag_name: TagName,
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct Tag {
     pub name: String,
     pub embedding: Option<Vec<f32>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct TagCount {
+    #[schema(inline)]
     pub tag_name: TagName,
     pub user_count: i64,
 }
