@@ -1,12 +1,18 @@
-
 import 'package:flutter/material.dart';
-
+import '../auth.dart';
+import 'login.dart';
 
 class SettingsPage extends StatelessWidget {
-	SettingsPage({ super.key });
-	@override Widget build(BuildContext context) {
-		return Center(child: Text("Settings Placeholder"));
-	}
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ElevatedButton.icon(
+        icon: Icon(Icons.logout),
+        label: Text("Logout"),
+        onPressed: () async {
+          await signOut();
+        },
+      ),
+    );
+  }
 }
-
-

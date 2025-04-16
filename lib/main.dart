@@ -56,6 +56,7 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
+
   
 	int pageIdx = 2;
 	final List<Widget Function()> pages = [
