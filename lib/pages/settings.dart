@@ -3,7 +3,7 @@ import '../auth.dart';
 import '../main.dart'; // Import to access themeModeNotifier
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {

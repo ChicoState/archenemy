@@ -38,10 +38,46 @@ void main() async {
 	//log.i(await api.getMyProfile());
 }
 
+
 class Root extends StatefulWidget {
   const Root({super.key});
-<<<<<<< HEAD
+  @override
+  State<Root> createState() => RootState();
+}
 
+// <<<<<<< HEAD
+
+//   @override
+//   Widget build(BuildContext ctx) {
+//     return ValueListenableBuilder<ThemeMode>(
+//       valueListenable: themeModeNotifier,
+//       builder: (context, currentTheme, child) {
+//         return MaterialApp(
+//           theme: ThemeData(
+//             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+//             useMaterial3: true,
+//           ),
+//           darkTheme: ThemeData.dark(),
+//           // Here, 'currentTheme' is the local variable provided by the builder
+//           themeMode: currentTheme,
+//           home: LoginPage(),
+//         );
+//       },
+//     );
+
+// 	@override State<Root> createState() => RootState();
+
+// }
+class RootState extends State<Root> {
+  @override
+  void initState() {
+    super.initState();
+    auth.stateChanges.listen((dynamic _) {
+      // This is a mild anti-pattern
+      setState(() {});
+    });
+  }
+	
   @override
   Widget build(BuildContext ctx) {
     return ValueListenableBuilder<ThemeMode>(
@@ -55,30 +91,10 @@ class Root extends StatefulWidget {
           darkTheme: ThemeData.dark(),
           // Here, 'currentTheme' is the local variable provided by the builder
           themeMode: currentTheme,
-          home: LoginPage(),
+          home: auth.hasUser ? App() : LoginPage(),
         );
       },
     );
-=======
-	@override State<Root> createState() => RootState();
-	
-}
-class RootState extends State<Root> {
-	@override void initState() {
-		super.initState();
-		auth.stateChanges.listen((dynamic _) {
-			// This is a mild anti-pattern
-			setState(() {});
-		});
-	}
-	
-	@override Widget build(BuildContext ctx) {
-    if (auth.hasUser) {
-			return App();
-		} else {
-			return LoginPage();
-		}
->>>>>>> 52f4e98cbf55dfa5e4ed32d8d334ed260f8ce8c2
   }
 }
 
