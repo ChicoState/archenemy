@@ -45,29 +45,7 @@ class Root extends StatefulWidget {
   State<Root> createState() => RootState();
 }
 
-// <<<<<<< HEAD
 
-//   @override
-//   Widget build(BuildContext ctx) {
-//     return ValueListenableBuilder<ThemeMode>(
-//       valueListenable: themeModeNotifier,
-//       builder: (context, currentTheme, child) {
-//         return MaterialApp(
-//           theme: ThemeData(
-//             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-//             useMaterial3: true,
-//           ),
-//           darkTheme: ThemeData.dark(),
-//           // Here, 'currentTheme' is the local variable provided by the builder
-//           themeMode: currentTheme,
-//           home: LoginPage(),
-//         );
-//       },
-//     );
-
-// 	@override State<Root> createState() => RootState();
-
-// }
 class RootState extends State<Root> {
   @override
   void initState() {
