@@ -45,7 +45,6 @@ void main() async {
       },
     ),
   );
-  //log.i(await api.getMyProfile());
 }
 
 class Root extends StatefulWidget {
@@ -58,21 +57,14 @@ class RootState extends State<Root> {
   @override
   void initState() {
     super.initState();
-    auth.stateChanges.listen((dynamic _) {
-      // This is a mild anti-pattern
+    auth.stateChanges.listen((_) {
       setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext ctx) {
-    if (auth.hasUser) {
-      return App();
-    } else {
-      // circumventing login by commenting out the above
-      // return LoginPage();
-      return App();
-    }
+    return auth.hasUser ? const App() : const App();
   }
 }
 
@@ -82,13 +74,17 @@ class App extends StatefulWidget {
   State<App> createState() => AppState();
 }
 
-class AppState extends State<App> {
+class AppState extends State<App> with SingleTickerProviderStateMixin {
   int pageIdx = 2;
+
+  late final AnimationController _shakeCtrl;
+  late final Animation<double> _shakeAnim;
+
   final List<Widget Function()> pages = [
-    () => SettingsPage(),
-    () => MyProfilePage(),
-    () => ExplorePage(),
-    () => MatchesPage(),
+    () => const SettingsPage(),
+    () => const MyProfilePage(),
+    () => const ExplorePage(),
+    () => const MatchesPage(),
   ];
 
   final iconList = <IconData>[
@@ -99,42 +95,78 @@ class AppState extends State<App> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _shakeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _shakeAnim = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 8.0, end: -8.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 8.0, end: 0.0), weight: 1),
+    ]).animate(CurvedAnimation(parent: _shakeCtrl, curve: Curves.linear));
+  }
+
+  @override
+  void dispose() {
+    _shakeCtrl.dispose();
+    super.dispose();
+  }
+
+  void _triggerShake() {
+    _shakeCtrl.repeat();
+    Future.delayed(const Duration(seconds: 2), () {
+      _shakeCtrl.stop();
+      _shakeCtrl.reset();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final brightness = Theme.of(context).brightness;
     final hsl = HSLColor.fromColor(cs.surface);
     final barColor = (brightness == Brightness.light
-            // slightly lighter than surface in light mode
-            ? hsl.withLightness((hsl.lightness - 0.25).clamp(0.0, 1.0))
-            // slightly darker than surface in dark mode
-            : hsl.withLightness((hsl.lightness + 0.25).clamp(0.0, 1.0)))
+            ? hsl.withLightness((hsl.lightness - 0.20).clamp(0.0, 1.0))
+            : hsl.withLightness((hsl.lightness + 0.20).clamp(0.0, 1.0)))
         .toColor();
 
     return Scaffold(
       extendBody: true,
       body: pages[pageIdx](),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 8,
-              spreadRadius: 1,
-              offset: const Offset(0, 0),
-            ),
-          ],
+      floatingActionButton: AnimatedBuilder(
+        animation: _shakeAnim,
+        builder: (_, child) => Transform.translate(
+          offset: Offset(_shakeAnim.value, 0),
+          child: child,
         ),
-        child: FloatingActionButton(
-          onPressed: () {/* … */},
-          backgroundColor: barColor,
-          elevation: 0, // shadow comes from the Container
-          shape:
-              const CircleBorder(), // ensures the FAB itself is perfectly round
-          child: Icon(Icons.thumb_down, color: Colors.red),
+        child: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 8,
+                spreadRadius: 1,
+                offset: const Offset(0, 0),
+              ),
+            ],
+          ),
+          child: FloatingActionButton(
+            onPressed: _triggerShake,
+            backgroundColor: barColor,
+            elevation: 0,
+            shape: const CircleBorder(),
+            child: const Text(
+              '😡',
+              style: TextStyle(fontSize: 32),
+            ),
+          ),
         ),
       ),
       bottomNavigationBar: AnimatedBottomNavigationBar(

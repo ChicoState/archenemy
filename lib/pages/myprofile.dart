@@ -174,7 +174,7 @@ class ProfileViewState extends State<ProfileView> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Icon(Icons.info_outline, color: cs.onSurface),
+                Icon(Icons.mail, color: cs.onSurface),
               ],
             ),
             const SizedBox(height: 8),
