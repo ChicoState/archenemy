@@ -1,4 +1,5 @@
 use axum::extract::FromRef;
+use axum::Json;
 use axum::{http::StatusCode, response::IntoResponse};
 use firebase_auth::FirebaseAuthState;
 use serde::{Deserialize, Serialize};
@@ -78,6 +79,6 @@ impl IntoResponse for Error {
             Self::Unknown { .. } => StatusCode::INTERNAL_SERVER_ERROR,
         };
 
-        (status_code, self).into_response()
+        (status_code, Json(self)).into_response()
     }
 }
