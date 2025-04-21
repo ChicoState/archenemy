@@ -8,6 +8,7 @@ class Profile {
   DateTime birthDate;
   String bio;
   List<String> interests;
+  List<String> imageURL = [];
 
   Profile(this.name, this.birthDate, this.bio, this.interests);
 
@@ -15,6 +16,27 @@ class Profile {
     name = name_;
     birthDate = birthDate_;
     bio = bio_;
+  }
+
+  void updateImageURL(String imageURL_, int index) {
+    if (index < imageURL.length) {
+      imageURL[index] = imageURL_;
+    } else if (index >= imageURL.length) {
+      imageURL.add(imageURL_);
+    } else {
+      print("Attempted to add negative number to Profile-ImageURL list");
+    }
+  }
+
+  void removeImageURL(int index) {
+    if (index < imageURL.length) {
+      imageURL.removeAt(index);
+    } else if (index >= imageURL.length) {
+      print("Attempted to use an index that is longer than the list itself");
+    } else {
+      print(
+          "Attempted to use a negative index to remove Profile-ImageURL from list");
+    }
   }
 
   // Not a particularly great implementation
@@ -62,11 +84,25 @@ class ProfileView extends StatelessWidget {
 
     final children = [
       Text(style: TextStyle(fontSize: 24), profile.name),
-      SizedBox(height: 160, child: Placeholder()),
+      SizedBox(
+          height: 160,
+          child: profile.imageURL[0].isNotEmpty
+              ? Image.network(profile.imageURL[0])
+              : Placeholder()),
+
+      //SizedBox(height: 160, child: Placeholder()),
       interestsView(profile.interests),
       Text(profile.bio),
-      SizedBox(height: 160, child: Placeholder()),
-      SizedBox(height: 160, child: Placeholder()),
+      SizedBox(
+          height: 160,
+          child: profile.imageURL[1].isNotEmpty
+              ? Image.network(profile.imageURL[1])
+              : Placeholder()),
+      SizedBox(
+          height: 160,
+          child: profile.imageURL[2].isNotEmpty
+              ? Image.network(profile.imageURL[2])
+              : Placeholder()),
     ];
 
     // Unbelievably, this is the easiest way I could find to do this
@@ -167,8 +203,8 @@ class _MyProfileViewState extends State<MyProfileView> {
 }
 
 class ExplorePage extends StatefulWidget {
-  List<Profile> profiles;
-  ExplorePage(this.profiles, {super.key});
+  final List<Profile> profiles;
+  const ExplorePage(this.profiles, {super.key});
 
   @override
   createState() => _ExplorePageState();
