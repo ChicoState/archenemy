@@ -3,50 +3,71 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'profile.dart';
 
+
 import 'pages/login.dart';
 import 'pages/settings.dart';
 import 'pages/myprofile.dart';
 import 'pages/explore.dart';
 import 'pages/matches.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'auth.dart' as auth;
 import 'api.dart' as api;
 import 'log.dart' as log;
 
+// Global notifier for theme mode
+final ValueNotifier<ThemeMode> themeModeNotifier =
+    ValueNotifier(ThemeMode.light);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 	
+  // Load the saved dark mode preference
+  final prefs = await SharedPreferences.getInstance();
+  bool isDarkMode = prefs.getBool('darkMode') ?? false;
+  themeModeNotifier.value = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+
   runApp(MaterialApp(
-		theme: ThemeData(
-			colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      useMaterial3: true,
-		),
 		home: Root()
 	));
-	//log.i(await api.getMyProfile());
 }
+
 
 class Root extends StatefulWidget {
   const Root({super.key});
-	@override State<Root> createState() => RootState();
-	
+  @override
+  State<Root> createState() => RootState();
 }
+
+
 class RootState extends State<Root> {
-	@override void initState() {
-		super.initState();
-		auth.stateChanges.listen((dynamic _) {
-			// This is a mild anti-pattern
-			setState(() {});
-		});
-	}
+  @override
+  void initState() {
+    super.initState();
+    auth.stateChanges.listen((dynamic _) {
+      // This is a mild anti-pattern
+      setState(() {});
+    });
+  }
 	
-	@override Widget build(BuildContext ctx) {
-    if (auth.hasUser) {
-			return App();
-		} else {
-			return LoginPage();
-		}
+  @override
+  Widget build(BuildContext ctx) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeModeNotifier,
+      builder: (context, currentTheme, child) {
+        return MaterialApp(
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData.dark(),
+          // Here, 'currentTheme' is the local variable provided by the builder
+          themeMode: currentTheme,
+          home: auth.hasUser ? App() : LoginPage(),
+        );
+      },
+    );
   }
 }
 
