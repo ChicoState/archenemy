@@ -1,14 +1,12 @@
-
 import 'package:flutter/material.dart';
 import 'log.dart';
 
 class Profile {
-  
   //String name;
   //DateTime birthDate;
   //String bio;
   //List<String> interests;
-  
+
   final String id;
   String username; // should maybe be final
   String displayName;
@@ -27,20 +25,18 @@ class Profile {
     required this.bio,
     this.tags,
   });
-  factory Profile.dummy(String displayName, {
-    String bio = "<test bio>",
-    List<String> tags = const ["Test Tag #1", "Test Tag #2"]
-  }) {
+  factory Profile.dummy(String displayName,
+      {String bio = "<test bio>",
+      List<String> tags = const ["Test Tag #1", "Test Tag #2"]}) {
     return Profile(
-      id: "dummy",
-      username: "dummy",
-      displayName: displayName,
-      avatarUrl: "",
-      bio: bio,
-      tags: tags
-    );
+        id: "dummy",
+        username: "dummy",
+        displayName: displayName,
+        avatarUrl: "",
+        bio: bio,
+        tags: tags);
   }
-  
+
   /*void update(String name, DateTime birthDate, String bio) {
     name = name_;
     birthDate = birthDate_;
@@ -62,20 +58,18 @@ class ProfileView extends StatelessWidget {
     Widget? interestsView(List<String>? interests) {
       if (interests == null) return null;
       return Text.rich(TextSpan(
-        children: interests.map((interest) {
-          return WidgetSpan(
+          children: interests.map((interest) {
+        return WidgetSpan(
             child: Card(
-              margin: EdgeInsets.fromLTRB(3.0, 3.0, 3.0, 3.0),
-              color: Colors.grey[400], //Theme.of(context).cardColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4.0))),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 3.0),
-                child: Text(interest)
-              ),
-            )
-          );
-        }
-      ).toList()));
+          margin: EdgeInsets.fromLTRB(3.0, 3.0, 3.0, 3.0),
+          color: Colors.grey[400], //Theme.of(context).cardColor,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(4.0))),
+          child: Padding(
+              padding: EdgeInsets.fromLTRB(5.0, 3.0, 5.0, 3.0),
+              child: Text(interest)),
+        ));
+      }).toList()));
     }
 
     final children = [
@@ -150,4 +144,3 @@ class ProfileView extends StatelessWidget {
     );*/
   }
 }
-

@@ -1,0 +1,83 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH user_tags AS (\r\n    SELECT tag_name FROM UserTags WHERE user_id = $1\r\n),\r\nuser_likes AS (\r\n    SELECT target_user_id FROM UserLikes WHERE user_id = $1\r\n),\r\nuser_dislikes AS (\r\n    SELECT target_user_id FROM UserDislikes WHERE user_id = $1\r\n),\r\n-- Get user's tags with embeddings\r\nuser_tag_embeddings AS (\r\n    SELECT t.name, t.embedding\r\n    FROM Tags t\r\n    JOIN UserTags ut ON t.name = ut.tag_name\r\n    WHERE ut.user_id = $1 AND t.embedding IS NOT NULL\r\n),\r\n-- Get potential nemesis users' tags with embeddings\r\nnemesis_tag_embeddings AS (\r\n    SELECT ut.user_id, t.name, t.embedding\r\n    FROM Tags t\r\n    JOIN UserTags ut ON t.name = ut.tag_name\r\n    WHERE ut.user_id != $1 \r\n        AND ut.user_id NOT IN (SELECT target_user_id FROM user_likes)\r\n        AND ut.user_id NOT IN (SELECT target_user_id FROM user_dislikes)\r\n        AND t.embedding IS NOT NULL\r\n),\r\n-- Calculate tag embedding similarity scores for each potential nemesis\r\ntag_similarity_scores AS (\r\n    SELECT \r\n        nte.user_id,\r\n        -- For each user, calculate average similarity between their tags and opposite of user's tags\r\n        -- Higher score = more opposite tags (better nemesis match)\r\n        AVG(\r\n            CASE \r\n                WHEN ute.embedding IS NOT NULL AND nte.embedding IS NOT NULL THEN\r\n                    -- Invert user tag embedding for opposite comparison\r\n                    -- Scale to 0-1 range where 1 = perfect opposite\r\n                    (1 - ((ute.embedding <=> nte.embedding) / 2))\r\n                ELSE 0.5\r\n            END\r\n        ) AS tag_embedding_score\r\n    FROM \r\n        nemesis_tag_embeddings nte\r\n    CROSS JOIN \r\n        user_tag_embeddings ute\r\n    GROUP BY \r\n        nte.user_id\r\n),\r\n-- Calculate combined score based on embedding similarity and tag overlap\r\nuser_scores AS (\r\n    SELECT \r\n        u.id,\r\n        (\r\n            -- 1. User embedding similarity component (50%)\r\n            -- Higher score = better nemesis match (more opposite)\r\n            CASE\r\n                WHEN u.embedding IS NOT NULL THEN \r\n                    -- Compare with negative embedding to find semantic opposites\r\n                    -- Scale to 0-1 range where 1 = perfect nemesis\r\n                    (1 - (u.embedding <=> $4::vector) / 2)\r\n                ELSE 0.5 -- Default middle value if no embedding\r\n            END * 0.5 -- 50% weight for user embedding\r\n            \r\n            +\r\n            \r\n            -- 2. Tag embedding similarity component (30%)\r\n            -- Use the tag similarity scores calculated above\r\n            COALESCE((\r\n                SELECT tag_embedding_score \r\n                FROM tag_similarity_scores \r\n                WHERE user_id = u.id\r\n            ), 0.5) * 0.3 -- 30% weight for tag embeddings\r\n            \r\n            +\r\n            \r\n            -- 3. Tag overlap component (20%)\r\n            -- Lower = more overlap, we want the opposite\r\n            -- Count percentage of non-matching tags\r\n            (1 - COALESCE((\r\n                SELECT COUNT(*)::float \r\n                FROM UserTags ut\r\n                WHERE ut.user_id = u.id AND ut.tag_name IN (SELECT tag_name FROM user_tags)\r\n            ), 0) / \r\n            NULLIF((\r\n                SELECT COUNT(*)::float \r\n                FROM UserTags \r\n                WHERE user_id = u.id\r\n            ), 1)) * 0.2 -- 20% weight for tag name overlap\r\n        ) AS nemesis_score\r\n    FROM \r\n        Users u\r\n    WHERE \r\n        u.id != $1\r\n        AND u.id NOT IN (SELECT target_user_id FROM user_likes)\r\n        AND u.id NOT IN (SELECT target_user_id FROM user_dislikes)\r\n)\r\n\r\nSELECT \r\n    u.id, u.username, u.display_name, u.avatar_url as \"avatar_url: Url\", u.bio, u.created_at, u.updated_at, u.embedding as \"embedding: Vector\", \r\n    COALESCE(us.nemesis_score, 0.5) AS compatibility_score\r\nFROM \r\n    Users u\r\nLEFT JOIN \r\n    user_scores us ON u.id = us.id\r\nWHERE \r\n    u.id != $1\r\n    AND u.id NOT IN (SELECT target_user_id FROM user_likes)\r\n    AND u.id NOT IN (SELECT target_user_id FROM user_dislikes)\r\nORDER BY \r\n    -- Order by nemesis score (highest first = most incompatible)\r\n    compatibility_score DESC\r\nLIMIT $2\r\nOFFSET $3\r\n\r\n",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "username",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "display_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "avatar_url: Url",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "bio",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "embedding: Vector",
+        "type_info": {
+          "Custom": {
+            "name": "vector",
+            "kind": "Simple"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "compatibility_score",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8",
+        "Int8",
+        {
+          "Custom": {
+            "name": "vector",
+            "kind": "Simple"
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      null
+    ]
+  },
+  "hash": "9bd9591a9e5426e2cc2c234b79714b9af9f1047f9d6b02ca3b3d583d2a0ef8a1"
+}
