@@ -45,6 +45,7 @@ void main() async {
       },
     ),
   );
+  //log.i(await api.getMyProfile());
 }
 
 class Root extends StatefulWidget {
@@ -57,14 +58,21 @@ class RootState extends State<Root> {
   @override
   void initState() {
     super.initState();
-    auth.stateChanges.listen((_) {
+    auth.stateChanges.listen((dynamic _) {
+      // This is a mild anti-pattern
       setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext ctx) {
-    return auth.hasUser ? const App() : const App();
+    if (auth.hasUser) {
+      return App();
+    } else {
+      // circumventing login by commenting out the above
+      // return LoginPage();
+      return App();
+    }
   }
 }
 
@@ -74,17 +82,13 @@ class App extends StatefulWidget {
   State<App> createState() => AppState();
 }
 
-class AppState extends State<App> with SingleTickerProviderStateMixin {
+class AppState extends State<App> {
   int pageIdx = 2;
-
-  late final AnimationController _shakeCtrl;
-  late final Animation<double> _shakeAnim;
-
   final List<Widget Function()> pages = [
-    () => const SettingsPage(),
-    () => const MyProfilePage(),
-    () => const ExplorePage(),
-    () => const MatchesPage(),
+    () => SettingsPage(),
+    () => MyProfilePage(),
+    () => ExplorePage(),
+    () => MatchesPage(),
   ];
 
   final iconList = <IconData>[
@@ -93,35 +97,6 @@ class AppState extends State<App> with SingleTickerProviderStateMixin {
     Icons.star,
     Icons.heart_broken,
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _shakeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _shakeAnim = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 8.0, end: -8.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 8.0, end: 0.0), weight: 1),
-    ]).animate(CurvedAnimation(parent: _shakeCtrl, curve: Curves.linear));
-  }
-
-  @override
-  void dispose() {
-    _shakeCtrl.dispose();
-    super.dispose();
-  }
-
-  void _triggerShake() {
-    _shakeCtrl.repeat();
-    Future.delayed(const Duration(seconds: 2), () {
-      _shakeCtrl.stop();
-      _shakeCtrl.reset();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,34 +112,31 @@ class AppState extends State<App> with SingleTickerProviderStateMixin {
       extendBody: true,
       body: pages[pageIdx](),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: AnimatedBuilder(
-        animation: _shakeAnim,
-        builder: (_, child) => Transform.translate(
-          offset: Offset(_shakeAnim.value, 0),
-          child: child,
+      floatingActionButton: Container(
+        width: 72,
+        height: 72,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 8,
+              spreadRadius: 1,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
-        child: Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 8,
-                spreadRadius: 1,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          child: FloatingActionButton(
-            onPressed: _triggerShake,
-            backgroundColor: barColor,
-            elevation: 0,
-            shape: const CircleBorder(),
-            child: const Text(
-              '😡',
-              style: TextStyle(fontSize: 32),
+        child: FloatingActionButton(
+          onPressed: () {/* … */},
+          backgroundColor: barColor,
+          elevation: 0, // shadow comes from the Container
+          shape:
+              const CircleBorder(), // ensures the FAB itself is perfectly round
+          // child: Icon(Icons.thumb_down, color: Colors.red),
+          child: Text(
+            '😡', // angry emoji
+            style: TextStyle(
+              fontSize: 32, // size the emoji
             ),
           ),
         ),
