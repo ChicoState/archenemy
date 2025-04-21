@@ -29,13 +29,8 @@ void main() async {
   themeModeNotifier.value = isDarkMode ? ThemeMode.dark : ThemeMode.light;
 
   runApp(MaterialApp(
-		// theme: ThemeData(
-		// 	colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-    //   useMaterial3: true,
-		// ),
 		home: Root()
 	));
-	//log.i(await api.getMyProfile());
 }
 
 
