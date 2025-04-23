@@ -1,6 +1,8 @@
 import 'dart:convert';
-import 'dart:ffi';
+//import 'dart:ffi';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'log.dart';
 
 class Profile {
@@ -86,7 +88,7 @@ class ProfileView extends StatelessWidget {
       Text(style: TextStyle(fontSize: 24), profile.name),
       SizedBox(
           height: 160,
-          child: profile.imageURL[0].isNotEmpty
+          child: profile.imageURL.length >= 1
               ? Image.network(profile.imageURL[0])
               : Placeholder()),
 
@@ -95,12 +97,12 @@ class ProfileView extends StatelessWidget {
       Text(profile.bio),
       SizedBox(
           height: 160,
-          child: profile.imageURL[1].isNotEmpty
+          child: profile.imageURL.length >= 2
               ? Image.network(profile.imageURL[1])
               : Placeholder()),
       SizedBox(
           height: 160,
-          child: profile.imageURL[2].isNotEmpty
+          child: profile.imageURL.length >= 3
               ? Image.network(profile.imageURL[2])
               : Placeholder()),
     ];
@@ -117,54 +119,6 @@ class ProfileView extends StatelessWidget {
         child: ListView(
             //mainAxisAlignment: MainAxisAlignment.center,
             children: spacedChildren));
-
-    /*return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text("Profile"),
-      ),
-      body: Center(
-        child: Padding(
-					padding: EdgeInsets.all(16.0),
-					child: Column(
-						mainAxisAlignment: MainAxisAlignment.center,
-						children: <Widget>[
-							Text(style: TextStyle(fontSize: 64), profile.name),
-							Expanded(child: Placeholder()),
-							Container(
-								height: MediaQuery.sizeOf(context).height / 4,
-								width: MediaQuery.sizeOf(context).width,
-								padding: EdgeInsets.all(16.0),
-								child: ListView.builder(
-									itemCount: profile.interests.length,
-									prototypeItem: ListTile(
-										title: Text(profile.interests[0]),
-									),
-									itemBuilder: (context, index) {
-										return ListTile(
-											title: Text(profile.interests[index]));
-									}),
-							)
-						]
-					)
-				),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => EditProfile(
-                        myProfile: widget.myProfile,
-                      ))).then((_) {
-            setState(() {
-              widget.myProfile;
-            });
-          });
-        },
-        child: const Icon(Icons.manage_accounts),
-      ),
-    );*/
   }
 }
 
@@ -197,7 +151,7 @@ class _MyProfileViewState extends State<MyProfileView> {
                   });
                 });
               },
-              icon: Icon(Icons.menu)))
+              icon: Icon(Icons.manage_accounts)))
     ]);
   }
 }
@@ -273,7 +227,9 @@ class _EditProfileState extends State<EditProfile> {
   DateTime? selectedDate = DateTime.now();
   String? enteredName = "name";
   String? enteredBio = "bio";
+  File? image;
 
+  final ImagePicker imagePicker = ImagePicker();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
   final GlobalKey<FormState> nameFormKey = GlobalKey<FormState>();
@@ -286,6 +242,11 @@ class _EditProfileState extends State<EditProfile> {
     nameController.dispose();
     bioController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   String? validator(String? value) {
@@ -334,9 +295,12 @@ class _EditProfileState extends State<EditProfile> {
         });
       }
 
+      ////////////////////////////////TODO
+      ///Upload images and data to server
+      ///retrieve image URL(s)
+      ///save to Profile class
+      //////////////// ////////////
       setState(() {
-        // widget.myProfile.update(nameController.text,
-        //     selectedDate ?? DateTime.now(), bioController.text);
         widget.myProfile.name = nameController.text;
         widget.myProfile.birthDate = selectedDate ?? DateTime.now();
         widget.myProfile.bio = bioController.text;
@@ -346,6 +310,10 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  /////////////TODO
+  ///Put server validation Functionality in this function
+  ///return error text, null if no errors
+  ////////////////////
   Future<String?> validateUsernameFromServer(String username) async {
     // final Set<String> takenUsernames = <String>{'jack', 'alex'};
 
@@ -373,8 +341,31 @@ class _EditProfileState extends State<EditProfile> {
     });
   }
 
+  void _getPhotoC() async {
+    final XFile? photo =
+        await imagePicker.pickImage(source: ImageSource.camera);
+    if (photo != null) {
+      setState(() {
+        image = File(photo.path);
+      });
+    }
+  }
+
+  void _getPhotoG() async {
+    final XFile? photo =
+        await imagePicker.pickImage(source: ImageSource.gallery);
+    if (photo != null) {
+      setState(() {
+        image = File(photo.path);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    ButtonStyle textButtonStyle = TextButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -385,9 +376,15 @@ class _EditProfileState extends State<EditProfile> {
             padding: EdgeInsets.all(16.0),
             child: Form(
                 key: nameFormKey,
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                child: ListView(
+                    // mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
+                      image != null
+                          ? Image.file(image!, fit: BoxFit.fitHeight)
+                          : Placeholder(
+                              fallbackHeight: 200,
+                              fallbackWidth: 200,
+                            ),
                       TextFormField(
                         forceErrorText: forceErrorText,
                         controller: nameController,
@@ -412,18 +409,38 @@ class _EditProfileState extends State<EditProfile> {
                         onChanged: onChanged,
                       ),
                       tags,
-                      Text(
-                        selectedDate != null
-                            ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
-                            : 'No date selected',
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                              style: textButtonStyle,
+                              onPressed: _getPhotoC,
+                              child: const Text("Camera")),
+                          TextButton(
+                              style: textButtonStyle,
+                              onPressed: _getPhotoG,
+                              child: const Text("Gallery"))
+                        ],
                       ),
-                      TextButton(
-                          onPressed: _selectDate,
-                          child: const Text("Birthday")),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                              style: textButtonStyle,
+                              onPressed: _selectDate,
+                              child: const Text("Birthday")),
+                          Text(
+                            selectedDate != null
+                                ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                                : 'No date selected',
+                          ),
+                        ],
+                      ),
                       if (isLoading)
                         const CircularProgressIndicator()
                       else
                         TextButton(
+                          style: textButtonStyle,
                           onPressed: onSave,
                           child: Text('Save'),
                         ),
