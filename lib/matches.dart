@@ -12,7 +12,7 @@ import 'profile.dart';
 class MatchesPage extends StatelessWidget {
 	
 	final List<Profile> profiles;
-	MatchesPage(this.profiles, { super.key });
+	const MatchesPage(this.profiles, { super.key });
 	
 	@override
 	Widget build(BuildContext context) {
