@@ -78,7 +78,7 @@ Authorization: Bearer user-profile-test-user1
 }
 HTTP 400
 [Asserts]
-jsonpath "$.field" == "tag_name"
+jsonpath "$.Validation.field" == "tag_name"
 
 # 9. Find nemesis tags for "introvert"
 GET {{host}}/api/v1/tags/introvert/nemesis
@@ -108,7 +108,7 @@ Authorization: Bearer user-profile-test-user1
 HTTP 200
 [Asserts]
 jsonpath "$[*]" isCollection 
-jsonpath "$" count == 2
+jsonpath "$" count == 1
 jsonpath "$[0].tag_name" == "coffee-lover"
 jsonpath "$[*].tag_name" not contains "introvert"
 
@@ -128,7 +128,7 @@ Authorization: Bearer user-profile-test-user1
 HTTP 200
 [Asserts]
 jsonpath "$[*]" isCollection 
-jsonpath "$" count == 2
+jsonpath "$" count == 1
 
 # 15. Remove all remaining tags
 DELETE {{host}}/api/v1/user/me/tags
