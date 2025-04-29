@@ -39,7 +39,7 @@ class _SettingsPageState extends State<SettingsPage> {
           // iterate over built‑in ThemeMode values
           for (var mode in ThemeMode.values)
             RadioListTile<ThemeMode>(
-              title: Text(mode.name.capitalize()), // "system", "light", "dark"
+              title: Text(mode.name.capitalize()),
               value: mode,
               groupValue: _currentMode,
               onChanged: (chosen) {

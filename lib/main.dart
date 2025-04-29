@@ -69,9 +69,8 @@ class RootState extends State<Root> {
     if (auth.hasUser) {
       return App();
     } else {
-      // circumventing login by commenting out the above
-      // return LoginPage();
-      return App();
+      return LoginPage();
+      //return App(); // use to circumvent login issues
     }
   }
 }
