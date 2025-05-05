@@ -298,8 +298,8 @@ class _EditProfileState extends State<EditProfile> {
       ////////////////////////////////TODO
       ///Upload images and data to server
       ///retrieve image URL(s)
-      ///save to Profile class
-      //////////////// ////////////
+      ///save to Profile class using profile.imageUrl.add()
+      ////////////////////////////
       setState(() {
         widget.myProfile.name = nameController.text;
         widget.myProfile.birthDate = selectedDate ?? DateTime.now();
