@@ -25,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -48,17 +42,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyB0RhpgY_VR_PGyHkgMu93Wj6GpPwtIXDc',
-    appId: '1:334764402722:web:952e6566c01b24bd25827b',
+    appId: '1:334764402722:web:776c9a48c5fcf99e25827b',
     messagingSenderId: '334764402722',
     projectId: 'archenemy-e49df',
     authDomain: 'archenemy-e49df.firebaseapp.com',
     storageBucket: 'archenemy-e49df.firebasestorage.app',
-    measurementId: 'G-9CRX7BQH6V',
+    measurementId: 'G-0W5RFB92DX',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDoUmtCQVWbIc_Q01RbQi69RKIPt-R9y0U',
-    appId: '1:334764402722:android:dcf9ea585b45430125827b',
+    appId: '1:334764402722:android:fc74e28baa7ff7ec25827b',
     messagingSenderId: '334764402722',
     projectId: 'archenemy-e49df',
     storageBucket: 'archenemy-e49df.firebasestorage.app',
@@ -66,12 +60,34 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCeYtfoF0f6ZoSjyfpEYfaSll8H80hrrbA',
-    appId: '1:334764402722:ios:a2e6fb3d349776bc25827b',
+    appId: '1:334764402722:ios:4f5c2917d166fa6f25827b',
     messagingSenderId: '334764402722',
     projectId: 'archenemy-e49df',
     storageBucket: 'archenemy-e49df.firebasestorage.app',
-    iosClientId:
-        '334764402722-0n4vg2rhdnaebdegt1ktsneua0u8so3e.apps.googleusercontent.com',
+    androidClientId: '334764402722-1rv7t0r5touf6aoqu9sgsrbai94sjgnr.apps.googleusercontent.com',
+    iosClientId: '334764402722-0n4vg2rhdnaebdegt1ktsneua0u8so3e.apps.googleusercontent.com',
     iosBundleId: 'com.example.hatingapp',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyCeYtfoF0f6ZoSjyfpEYfaSll8H80hrrbA',
+    appId: '1:334764402722:ios:4f5c2917d166fa6f25827b',
+    messagingSenderId: '334764402722',
+    projectId: 'archenemy-e49df',
+    storageBucket: 'archenemy-e49df.firebasestorage.app',
+    androidClientId: '334764402722-1rv7t0r5touf6aoqu9sgsrbai94sjgnr.apps.googleusercontent.com',
+    iosClientId: '334764402722-0n4vg2rhdnaebdegt1ktsneua0u8so3e.apps.googleusercontent.com',
+    iosBundleId: 'com.example.hatingapp',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyB0RhpgY_VR_PGyHkgMu93Wj6GpPwtIXDc',
+    appId: '1:334764402722:web:7abcf05bc1a607f725827b',
+    messagingSenderId: '334764402722',
+    projectId: 'archenemy-e49df',
+    authDomain: 'archenemy-e49df.firebaseapp.com',
+    storageBucket: 'archenemy-e49df.firebasestorage.app',
+    measurementId: 'G-7WT1SECZXH',
+  );
+
 }
