@@ -4,7 +4,7 @@
 > [!WARNING]
 > To fix authentication, run 
 >
-> `keytool -exportcert -alias androiddebugkey -keystore ~/.android/debug.keystore`
+> `./gradlew signinReport`
 >
 > Under the `android` directory, then send me (discord: WERDXZ) or max the SHA1 hash
 
