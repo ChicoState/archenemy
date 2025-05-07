@@ -1,6 +1,14 @@
 [![Clippy check](https://github.com/ChicoState/archenemy/actions/workflows/ci.yml/badge.svg)](https://github.com/ChicoState/archenemy/actions/workflows/ci.yml)
 
-> ![WARNING]
+
+> [!WARNING]
+> To fix authentication, run 
+>
+> `./gradlew signinReport`
+>
+> Under the `android` directory, then send me (discord: WERDXZ) or max the SHA1 hash
+
+> [!WARNING]
 > I just made a major api change!
 > Basically everything is prefixed with `/api/v1`
 >
