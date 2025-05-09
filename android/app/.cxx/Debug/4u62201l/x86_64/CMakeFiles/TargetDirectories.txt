@@ -1,2 +1,0 @@
-C:/Users/Sage Becker/OneDrive/Desktop/gp/active/archenemy-updated/android/app/.cxx/Debug/4u62201l/x86_64/CMakeFiles/edit_cache.dir
-C:/Users/Sage Becker/OneDrive/Desktop/gp/active/archenemy-updated/android/app/.cxx/Debug/4u62201l/x86_64/CMakeFiles/rebuild_cache.dir
