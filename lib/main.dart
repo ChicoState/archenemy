@@ -20,6 +20,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+	log.info(await api.getMyProfile());
   runApp(
     AnimatedBuilder(
       animation: ThemeManager.instance,

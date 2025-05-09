@@ -12,10 +12,27 @@ class Profile {
   String displayName;
   String avatarUrl;
   String bio;
+	DateTime? birthDate;
+	List<String>? photos;
   List<String>? tags;
   //List<double> embedding;
   //DateTime createdAt;
   //DateTime updatedAt;
+	
+	int get age {
+		final bd = birthDate;
+		
+		if (bd == null) {
+			return 21;
+		}
+		
+		final now = DateTime.now();
+    var a = now.year - bd.year;
+    if (now.month < bd.month || (now.month == bd.month && now.day < bd.day)) {
+      a--;
+    }
+    return a;
+  }
 
   Profile({
     required this.id,
@@ -24,24 +41,33 @@ class Profile {
     required this.avatarUrl,
     required this.bio,
     this.tags,
+		this.photos = const [
+			'https://picsum.photos/400/600?image=1011',
+			'https://picsum.photos/400/600?image=1022',
+			'https://picsum.photos/400/600?image=1033',
+		],
+		this.birthDate,
   });
-  factory Profile.dummy(String displayName,
-      {String bio = "<test bio>",
-      List<String> tags = const ["Test Tag #1", "Test Tag #2"]}) {
-    return Profile(
-        id: "dummy",
-        username: "dummy",
-        displayName: displayName,
-        avatarUrl: "",
-        bio: bio,
-        tags: tags);
-  }
-
-  /*void update(String name, DateTime birthDate, String bio) {
-    name = name_;
-    birthDate = birthDate_;
-    bio = bio_;
-  }*/
+	
+	
+	factory Profile.dummy() => Profile(
+		id: "abcdef",
+		username: "whatever",
+		//displayName: "Dummy!!",
+		/*photos: [
+			'https://picsum.photos/400/600?image=1011',
+			'https://picsum.photos/400/600?image=1022',
+			'https://picsum.photos/400/600?image=1033',
+		],*/
+		avatarUrl: 'https://picsum.photos/400/600?image=1011',
+		displayName: 'Alex',
+		birthDate: DateTime(1995, 6, 15),
+		bio: 'Lover of hikes, coffee, and spontaneous road trips.',
+		tags: ['Hiking', 'Coffee', 'Music', 'Cooking'],
+		/*longDescription:
+				'Software engineer by day, amateur photographer by weekend. '
+				'Always looking for the next adventure or a lazy Sunday in.',*/
+	);
 }
 
 class ProfileView extends StatelessWidget {

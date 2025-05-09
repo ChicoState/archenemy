@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:hatingapp/profile.dart';
+import 'package:hatingapp/api.dart' as api;
 
-class DummyProfile {
+/*class DummyProfile {
   final List<String> photoUrls;
   final String displayName;
   final DateTime birthDate;
   final String bio;
   final List<String> interests;
-  final String longDescription;
+  //final String longDescription;
 
   DummyProfile({
     required this.photoUrls,
@@ -14,24 +16,24 @@ class DummyProfile {
     required this.birthDate,
     required this.bio,
     required this.interests,
-    required this.longDescription,
+    //required this.longDescription,
   });
 
   factory DummyProfile.example() => DummyProfile(
-        photoUrls: [
-          'https://picsum.photos/400/600?image=1011',
-          'https://picsum.photos/400/600?image=1022',
-          'https://picsum.photos/400/600?image=1033',
-        ],
-        displayName: 'Alex',
-        birthDate: DateTime(1995, 6, 15),
-        bio: 'Lover of hikes, coffee, and spontaneous road trips.',
-        interests: ['Hiking', 'Coffee', 'Music', 'Cooking'],
-        longDescription:
-            'Software engineer by day, amateur photographer by weekend. '
-            'Always looking for the next adventure or a lazy Sunday in.',
-      );
-}
+		photoUrls: [
+			'https://picsum.photos/400/600?image=1011',
+			'https://picsum.photos/400/600?image=1022',
+			'https://picsum.photos/400/600?image=1033',
+		],
+		displayName: 'Alex',
+		birthDate: DateTime(1995, 6, 15),
+		bio: 'Lover of hikes, coffee, and spontaneous road trips.',
+		interests: ['Hiking', 'Coffee', 'Music', 'Cooking'],
+		/*longDescription:
+				'Software engineer by day, amateur photographer by weekend. '
+				'Always looking for the next adventure or a lazy Sunday in.',*/
+	);
+}*/
 
 class MyProfilePage extends StatefulWidget {
   const MyProfilePage({super.key});
@@ -43,42 +45,50 @@ class MyProfilePage extends StatefulWidget {
 class MyProfilePageState extends State<MyProfilePage> {
   @override
   Widget build(BuildContext context) {
-    final profile = DummyProfile.example();
     final cs = Theme.of(context).colorScheme;
-    // final txt = Theme.of(context).textTheme;
-
-    return Scaffold(
-      backgroundColor: cs.surface,
-      body: Stack(
-        children: [
-          ProfileView(profile),
-          Positioned(
-            top: 60,
-            right: 10,
-            child: IconButton(
-              icon: Icon(Icons.menu, color: cs.onSurface),
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    ////////////////Commented out until api integration//////////
-                    /// builder: (context) => EditProfile(profile),
-                    ////////////////////////////////////////////////////////////
-                    builder: (context) => EditProfile(), // use for now
-                  ),
-                );
-                setState(() {});
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+		
+		return FutureBuilder(
+			future: api.getMyProfile(),
+			builder: (context, snapshot) {
+				final profile = snapshot.data;
+				if (profile == null) {
+					return Center(child: CircularProgressIndicator());
+				} else {
+					return Scaffold(
+					  backgroundColor: cs.surface,
+						body: Stack(
+							children: [
+								ProfileView(profile),
+								Positioned(
+									top: 60,
+									right: 10,
+									child: IconButton(
+										icon: Icon(Icons.menu, color: cs.onSurface),
+										onPressed: () async {
+											await Navigator.push(
+												context,
+												MaterialPageRoute(
+													////////////////Commented out until api integration//////////
+													/// builder: (context) => EditProfile(profile),
+													////////////////////////////////////////////////////////////
+													builder: (context) => EditProfile(profile), // use for now
+												),
+											);
+											setState(() {});
+										},
+									),
+								),
+							],
+						),
+					);
+				}
+			}
+		);
+	}
 }
 
 class ProfileView extends StatefulWidget {
-  final DummyProfile profile;
+  final Profile profile;
   const ProfileView(this.profile, {super.key});
 
   @override
@@ -99,24 +109,15 @@ class ProfileViewState extends State<ProfileView> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  int get age {
-    final now = DateTime.now();
-    final bd = widget.profile.birthDate;
-    var a = now.year - bd.year;
-    if (now.month < bd.month || (now.month == bd.month && now.day < bd.day)) {
-      a--;
-    }
-    return a;
-  }
+	}
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final txt = Theme.of(context).textTheme;
-    final photos = widget.profile.photoUrls;
-
+		final profile = widget.profile;
+    final photos = profile.photos ?? [];
+		
     return Scaffold(
       backgroundColor: cs.surface,
       body: NestedScrollView(
@@ -177,7 +178,7 @@ class ProfileViewState extends State<ProfileView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${widget.profile.displayName}, $age',
+                  '${widget.profile.displayName}, ${profile.age}',
                   style: txt.headlineSmall?.copyWith(
                     color: cs.onSurface,
                     fontWeight: FontWeight.bold,
@@ -187,17 +188,17 @@ class ProfileViewState extends State<ProfileView> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
+            /*Text(
               widget.profile.bio,
               style: txt.bodyMedium?.copyWith(
                 color: cs.onSurface.withValues(alpha: 0.8),
               ),
-            ),
+            ),*/
             const SizedBox(height: 16),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: widget.profile.interests.map((tag) {
+              children: (profile.tags ?? []).map((tag) {
                 return Chip(
                   label: Text(
                     tag,
@@ -219,7 +220,7 @@ class ProfileViewState extends State<ProfileView> {
             ),
             const SizedBox(height: 8),
             Text(
-              widget.profile.longDescription,
+              widget.profile.bio,
               style: txt.bodyMedium?.copyWith(
                 color: cs.onSurface.withValues(alpha: 0.8),
               ),
@@ -234,8 +235,8 @@ class ProfileViewState extends State<ProfileView> {
 
 class EditProfile extends StatefulWidget {
   ////////////////Commented out until api integration/////////////////
-  // const EditProfile(this.myProfile, {super.key});
-  // final Profile myProfile;
+  const EditProfile(this.profile, {super.key});
+  final Profile profile;
   ///////////////////////////////////////////////////////////////
   @override
   State<EditProfile> createState() => _EditProfileState();
@@ -245,6 +246,7 @@ class _EditProfileState extends State<EditProfile> {
   DateTime? selectedDate = DateTime.now();
   String? enteredName = "name";
   String? enteredBio = "bio";
+	
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
@@ -292,11 +294,18 @@ class _EditProfileState extends State<EditProfile> {
     if (!isValid) {
       return;
     }
+		
+		widget.profile.displayName = nameController.text;
+		widget.profile.bio = bioController.text;
+		await api.patchMyProfile(widget.profile);
 
-    setState(() => isLoading = true);
+    /*setState(() => isLoading = true);
     final String? errorText = await validateUsernameFromServer(
       nameController.text,
     );
+		
+		
+		
 
     if (context.mounted) {
       setState(() => isLoading = false);
@@ -304,9 +313,12 @@ class _EditProfileState extends State<EditProfile> {
         setState(() {
           forceErrorText = errorText;
         });
-      }
+      } else {
+				
+			}
 
-      setState(() {
+      setState(() async {
+				
         // widget.myProfile.update(nameController.text,
         //     selectedDate ?? DateTime.now(), bioController.text);
 
@@ -323,7 +335,7 @@ class _EditProfileState extends State<EditProfile> {
 
         //print("Saved");
       });
-    }
+    }*/
   }
 
   Future<String?> validateUsernameFromServer(String username) async {

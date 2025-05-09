@@ -12,6 +12,7 @@ import './profile.dart';
 //const port = 8000;
 //const host = "10.0.2.2:8000";
 const host = "archenemy-zusg.shuttle.app";
+const prefix = "/api/v1";
 const https = true;
 
 Profile? _profileFromMap(dynamic map) {
@@ -70,28 +71,40 @@ String _profileToJson(Profile profile) {
 
 Future<Profile?> getMyProfile() {
   return _get("/user/me",
-      ok: (res) => _profileFromJson(res.body), err: (_) => null);
+    ok: (res) => _profileFromJson(res.body),
+		err: (_) => null
+	);
 }
 
 Future<bool> patchMyProfile(Profile profile) {
-  return _req<bool>(http.patch, "/user/me",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: json.encode({
-        "username": profile.username,
-        "display_name": profile.displayName,
-        "avatar_url": profile.avatarUrl,
-        "bio": profile.bio
-      }),
-      ok: (res) => true,
-      err: (_) => false);
+  return _req<bool>(http.put, "/user/me",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: json.encode({
+			"username": profile.username,
+			"display_name": profile.displayName,
+			"avatar_url": profile.avatarUrl,
+			"bio": profile.bio,
+		}),
+		ok: (res) => true,
+		err: (_) => false
+	);
 }
+
+Future<List<Profile>> getMatches() async {
+	return _get("/user/me/likes",
+		ok: (res) => _profilesFromJson(res.body) ?? [],
+		err: (_) => const []
+	);
+}
+
 
 List<Profile> _exploreProfiles = [];
 Future<List<Profile>?>? _exploreRequest;
 
-Future<Profile?> getNextExploreProfile() async {
+
+Future<List<Profile>> getExploreProfiles() async {
   if (_exploreProfiles.length <= 3) {
     _addExploreProfiles(); // don't await
   }
@@ -99,8 +112,8 @@ Future<Profile?> getNextExploreProfile() async {
   if (_exploreProfiles.isEmpty) {
     await _exploreRequest; // need to wait now
   }
-
-  return _exploreProfiles.firstOrNull;
+  
+  return _exploreProfiles;
 }
 
 Future<void> _addExploreProfiles({int paginationOffset = 0}) async {
@@ -116,7 +129,7 @@ Future<void> _addExploreProfiles({int paginationOffset = 0}) async {
 
 Future<List<Profile>?> _getExploreProfiles({int paginationOffset = 0}) {
   return _get(
-    "/nemeses/discover",
+    "/nemeses",
     params: {"offset": paginationOffset.toString()},
     ok: (res) => _profilesFromJson(res.body),
     err: (_) => null,
@@ -142,7 +155,9 @@ Future<bool> popExploreProfile({required bool liked}) async {
 }
 
 Uri _uri(String path, Map<String, String>? params) {
-  return https ? Uri.https(host, path, params) : Uri.http(host, path, params);
+  return https ?
+    Uri.https(host, "$prefix$path", params) :
+    Uri.http(host, "$prefix$path", params);
 }
 
 Future<Map<String, String>?> _authorized(Map<String, String>? headers) async {
@@ -172,7 +187,7 @@ Future<T> _get<T>(String path,
   final authorizedHeaders = await _authorized(headers);
   if (authorizedHeaders == null) return err(null);
   final res = await http.get(_uri(path, params), headers: authorizedHeaders);
-  return _handle(res, ok, err);
+  return _handle(path, res, ok, err);
 }
 
 Future<T> _req<T>(Requestor type, String path,
@@ -185,12 +200,12 @@ Future<T> _req<T>(Requestor type, String path,
   if (authorizedHeaders == null) return err(null);
   final res =
       await type(_uri(path, params), headers: authorizedHeaders, body: body);
-  return _handle(res, ok, err);
+  return _handle(path, res, ok, err);
 }
 
-T _handle<T>(http.Response res, T Function(http.Response) ok,
+T _handle<T>(String path, http.Response res, T Function(http.Response) ok,
     T Function(http.Response) err) {
   if (res.statusCode == 200) return ok(res);
-  log.error("invalid HTTP response code: ${res.statusCode}");
+  log.error("invalid HTTP response code [$path]: ${res.statusCode}");
   return err(res);
 }

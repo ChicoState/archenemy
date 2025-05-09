@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../profile.dart';
 
+import 'package:hatingapp/api.dart' as api;
+
 class ChatMessage {
   final String text;
   final bool isMine;
@@ -8,13 +10,8 @@ class ChatMessage {
 }
 
 class MatchesPage extends StatelessWidget {
-  final List<Profile> profiles = [
-    Profile.dummy("Match 1"),
-    Profile.dummy("Match 2"),
-    Profile.dummy("Match 3"),
-  ];
 
-  MatchesPage({super.key});
+  const MatchesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,69 +26,82 @@ class MatchesPage extends StatelessWidget {
         elevation: 1,
       ),
       backgroundColor: cs.surface,
-      body: ListView.separated(
-        itemCount: profiles.length,
-        separatorBuilder: (_, __) => Divider(
-          color: cs.onSurface.withValues(alpha: 0.2),
-          indent: 16,
-          endIndent: 16,
-          height: 1,
-        ),
-        itemBuilder: (context, i) {
-          final profile = profiles[i];
-          final initial =
-              profile.displayName.isNotEmpty ? profile.displayName[0] : '?';
+			
+			body: FutureBuilder(
+				future: api.getMatches(),
+				builder: (context, snapshot) {
+					final profiles = snapshot.data;
+					if (profiles == null) {
+						return Center(child: CircularProgressIndicator());
+					}
+					if (profiles.isEmpty) {
+						return Center(child: Text("No matches yet!"));
+					}
+					return ListView.separated(
+						itemCount: profiles.length,
+						separatorBuilder: (_, __) => Divider(
+							color: cs.onSurface.withValues(alpha: 0.2),
+							indent: 16,
+							endIndent: 16,
+							height: 1,
+						),
+						itemBuilder: (context, i) {
+							final profile = profiles[i];
+							final initial =
+									profile.displayName.isNotEmpty ? profile.displayName[0] : '?';
 
-          return InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatPage(profile: profile),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: cs.primaryContainer,
-                    child: Text(
-                      initial,
-                      style: txt.titleMedium
-                          ?.copyWith(color: cs.onPrimaryContainer),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          profile.displayName,
-                          style: txt.titleMedium?.copyWith(color: cs.onSurface),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "[latest message...]",
-                          style: txt.bodySmall?.copyWith(
-                            color: cs.onSurface.withValues(alpha: 0.6),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right, color: cs.onSurface),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+							return InkWell(
+								onTap: () {
+									Navigator.push(
+										context,
+										MaterialPageRoute(
+											builder: (_) => ChatPage(profile: profile),
+										),
+									);
+								},
+								child: Padding(
+									padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+									child: Row(
+										children: [
+											CircleAvatar(
+												radius: 28,
+												backgroundColor: cs.primaryContainer,
+												child: Text(
+													initial,
+													style: txt.titleMedium
+															?.copyWith(color: cs.onPrimaryContainer),
+												),
+											),
+											const SizedBox(width: 16),
+											Expanded(
+												child: Column(
+													crossAxisAlignment: CrossAxisAlignment.start,
+													children: [
+														Text(
+															profile.displayName,
+															style: txt.titleMedium?.copyWith(color: cs.onSurface),
+														),
+														const SizedBox(height: 4),
+														Text(
+															"[latest message...]",
+															style: txt.bodySmall?.copyWith(
+																color: cs.onSurface.withValues(alpha: 0.6),
+															),
+															maxLines: 1,
+															overflow: TextOverflow.ellipsis,
+														),
+													],
+												),
+											),
+											Icon(Icons.chevron_right, color: cs.onSurface),
+										],
+									),
+								),
+							);
+						},
+					);
+				}
+			),
     );
   }
 }
