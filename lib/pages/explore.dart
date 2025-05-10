@@ -4,6 +4,7 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:hatingapp/profile.dart';
 import 'package:hatingapp/api.dart' as api;
 import 'package:hatingapp/log.dart' as log;
+import 'dart:math';
 
 /*class profile {
   final String name;
@@ -75,6 +76,8 @@ class _ExplorePageState extends State<ExplorePage> {
   @override
   Widget build(BuildContext context) {
 		
+		
+		
 		return Scaffold(
 			body: FutureBuilder(
 				future: api.getExploreProfiles(),
@@ -83,6 +86,7 @@ class _ExplorePageState extends State<ExplorePage> {
 					if (members == null) {
 						return Center(child: CircularProgressIndicator());
 					} else {
+						log.info(members);
 						if (members.isEmpty) {
 							members.add(Profile.dummy());
 						}
@@ -110,13 +114,22 @@ class _ExplorePageState extends State<ExplorePage> {
 									);
 								}
 								
+								const defaultPhotos = [
+									'https://picsum.photos/400/600?image=1011',
+									'https://picsum.photos/400/600?image=1022',
+									'https://picsum.photos/400/600?image=1033',
+								];
+								
 								final profile = members[index];
+								final tags = profile.tags ?? [];
+								final photos = profile.photos ?? [defaultPhotos[Random().nextInt(3)]];
+								
 								return Stack(
 									children: [
 										// Full-screen image from network URL
 										Positioned.fill(
 											child: Image.network(
-												profile.photos!.first,
+												photos.first,
 												fit: BoxFit.cover,
 											),
 										),
@@ -155,7 +168,7 @@ class _ExplorePageState extends State<ExplorePage> {
 														Wrap(
 															spacing: 6,
 															runSpacing: 4,
-															children: profile.tags!.map((interest) {
+															children: tags.map((interest) {
 																return Chip(
 																	label: Text(
 																		interest,
@@ -179,7 +192,7 @@ class _ExplorePageState extends State<ExplorePage> {
 							onSwipe: (previousIndex, currentIndex, direction) {
 								debugPrint(
 										'Swiped card $previousIndex ${direction.name}; now top is $currentIndex');
-								//api.popExploreProfile(liked: true);
+								api.popExploreProfile(liked: true);
 								return true;
 							},
 							onUndo: (previousIndex, currentIndex, direction) {

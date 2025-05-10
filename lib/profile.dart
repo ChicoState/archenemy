@@ -70,7 +70,7 @@ class Profile {
 	);
 }
 
-class ProfileView extends StatelessWidget {
+/*class ProfileView extends StatelessWidget {
   final Profile profile;
   final bool editable; // doesn't work yet
   // not sure whether profile editing should happen on another page or not
@@ -169,4 +169,4 @@ class ProfileView extends StatelessWidget {
       ),
     );*/
   }
-}
+}*/

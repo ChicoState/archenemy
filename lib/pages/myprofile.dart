@@ -195,21 +195,34 @@ class ProfileViewState extends State<ProfileView> {
               ),
             ),*/
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: (profile.tags ?? []).map((tag) {
-                return Chip(
-                  label: Text(
-                    tag,
-                    style: txt.bodySmall?.copyWith(
-                      color: cs.onPrimaryContainer,
-                    ),
-                  ),
-                  backgroundColor: cs.primaryContainer,
-                );
-              }).toList(),
-            ),
+						
+						FutureBuilder(
+							future: api.getProfileTags(profile),
+							builder: (context, snapshot) {
+								final tags = snapshot.data;
+								if (tags == null) {
+									return SizedBox();
+								} else {
+									return Wrap(
+										spacing: 8,
+										runSpacing: 8,
+										children: tags.map((tag) {
+											return Chip(
+												label: Text(
+													tag,
+													style: txt.bodySmall?.copyWith(
+														color: cs.onPrimaryContainer,
+													),
+												),
+												backgroundColor: cs.primaryContainer,
+											);
+										}).toList(),
+									);
+								}
+							}
+						),
+						
+            
             const SizedBox(height: 24),
             Text(
               'About me',

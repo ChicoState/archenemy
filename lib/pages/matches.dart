@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../profile.dart';
 
 import 'package:hatingapp/api.dart' as api;
+import './myprofile.dart';
 
 class ChatMessage {
   final String text;
@@ -63,15 +64,26 @@ class MatchesPage extends StatelessWidget {
 									padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
 									child: Row(
 										children: [
-											CircleAvatar(
-												radius: 28,
-												backgroundColor: cs.primaryContainer,
-												child: Text(
-													initial,
-													style: txt.titleMedium
-															?.copyWith(color: cs.onPrimaryContainer),
+											GestureDetector(
+												onTap: () {
+													Navigator.push(
+														context,
+														MaterialPageRoute(
+															builder: (_) => ProfilePage(profile),
+														)
+													);
+												}, // Image tapped
+												child: CircleAvatar(
+													radius: 28,
+													backgroundColor: cs.primaryContainer,
+													child: Text(
+														initial,
+														style: txt.titleMedium
+																?.copyWith(color: cs.onPrimaryContainer),
+													),
 												),
 											),
+											
 											const SizedBox(width: 16),
 											Expanded(
 												child: Column(
@@ -83,7 +95,7 @@ class MatchesPage extends StatelessWidget {
 														),
 														const SizedBox(height: 4),
 														Text(
-															"[latest message...]",
+															"Say hi!",
 															style: txt.bodySmall?.copyWith(
 																color: cs.onSurface.withValues(alpha: 0.6),
 															),
@@ -104,6 +116,27 @@ class MatchesPage extends StatelessWidget {
 			),
     );
   }
+}
+
+class ProfilePage extends StatelessWidget {
+	
+	final Profile profile;
+	const ProfilePage(this.profile, {super.key});
+	
+	@override build(BuildContext context) {
+		
+		final cs = Theme.of(context).colorScheme;
+    final txt = Theme.of(context).textTheme;
+		
+		return Scaffold(
+			appBar: AppBar(
+				title: Text(profile.displayName),
+        backgroundColor: cs.surface,
+        foregroundColor: cs.onSurface,
+			),
+			body: ProfileView(profile),
+		);
+	}
 }
 
 class ChatPage extends StatefulWidget {
@@ -128,6 +161,7 @@ class ChatPageState extends State<ChatPage> {
         title: Text(widget.profile.displayName),
         backgroundColor: cs.surface,
         foregroundColor: cs.onSurface,
+				
       ),
       backgroundColor: cs.surface,
       body: Column(

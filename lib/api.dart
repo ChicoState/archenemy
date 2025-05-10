@@ -16,49 +16,64 @@ const prefix = "/api/v1";
 const https = true;
 
 Profile? _profileFromMap(dynamic map) {
-  if (map
-      case {
-        // Rare dart W, this is great
-        'id': String id,
-        'username': String username,
-        'display_name': String? displayName,
-        'avatar_url': String avatarUrl,
-        'bio': String bio,
-        /*'embedding': dynamic _,
-		'created_at': dynamic _,
-		'updated_at': dynamic _*/
-      }) {
+  if (map case {
+    // Rare dart W, this is great
+    'id': String id,
+    'username': String username,
+    'display_name': String? displayName,
+    'avatar_url': String avatarUrl,
+    'bio': String bio,
+    /*'embedding': dynamic _,
+    'created_at': dynamic _,
+    'updated_at': dynamic _*/
+  }) {
+		log.info(map);
     return Profile(
-        id: id,
-        username: username,
-        displayName: displayName ?? "<no-name-yet>",
-        avatarUrl: avatarUrl,
-        bio: bio,
-        tags: map["tags"] is List<String> ? map["tags"] : null);
+      id: id,
+      username: username,
+      displayName: displayName ?? "<no-name-yet>",
+      avatarUrl: avatarUrl,
+      bio: bio,
+      tags: map["tags"] is List<String> ? map["tags"] : null
+    );
   } else {
     log.warning("Failed to decode profile: $map");
     return null;
   }
 }
 
-Profile? _profileFromJson(String raw) {
-  return _profileFromMap(json.decode(raw));
-}
 
-List<Profile>? _profilesFromJson(String raw) {
-  var list = json.decode(raw);
-  List<Profile> decoded = [];
+List<T> _listFromJson<T>(String raw, T? Function(dynamic) converter) {
+  dynamic list = json.decode(raw);
+  List<T> output = [];
   if (list is List) {
-    for (final raw in list) {
-      if (_profileFromMap(raw) case Profile profile) {
-        decoded.add(profile);
+    for (final item in list) {
+      final decoded = converter(item);
+      if (decoded != null) {
+        output.add(decoded);
       }
     }
   }
-  return decoded;
+  return output;
+}
+Profile? _profileFromJson(String raw) {
+  return _profileFromMap(json.decode(raw));
+}
+List<Profile> _profilesFromJson(String raw) {
+  return _listFromJson(raw, _profileFromMap);
 }
 
-String _profileToJson(Profile profile) {
+String? _tagFromMap(dynamic map) {
+  if (map case { 'tag_name': String name }) {
+    return name;
+  }
+  return null;
+}
+List<String> _tagsFromJson(String raw) {
+  return _listFromJson(raw, _tagFromMap);
+}
+
+/*String _profileToJson(Profile profile) {
   return json.encode({
     'id': profile.id,
     'username': profile.username,
@@ -67,13 +82,24 @@ String _profileToJson(Profile profile) {
     'bio': profile.bio,
     'tags': profile.tags
   });
-}
+}*/
 
 Future<Profile?> getMyProfile() {
   return _get("/user/me",
     ok: (res) => _profileFromJson(res.body),
 		err: (_) => null
 	);
+}
+
+Future<List<String>> _getUserTags(String id) async {
+  return _get<List<String>>("/user/$id/tags",
+    ok: (res) => _tagsFromJson(res.body),
+    err: (_) => []
+  );
+}
+Future<List<String>> getProfileTags(Profile profile) async {
+	profile.tags ??= await _getUserTags(profile.id);
+  return profile.tags!;
 }
 
 Future<bool> patchMyProfile(Profile profile) {
@@ -94,8 +120,8 @@ Future<bool> patchMyProfile(Profile profile) {
 
 Future<List<Profile>> getMatches() async {
 	return _get("/user/me/likes",
-		ok: (res) => _profilesFromJson(res.body) ?? [],
-		err: (_) => const []
+		ok: (res) => _profilesFromJson(res.body),
+		err: (_) => []
 	);
 }
 
@@ -122,6 +148,7 @@ Future<void> _addExploreProfiles({int paginationOffset = 0}) async {
     final profiles = await _exploreRequest;
     _exploreRequest = null;
     if (profiles != null) {
+			log.info("Retrieved explore profiles: $profiles");
       _exploreProfiles.addAll(profiles);
     }
   }
@@ -137,13 +164,17 @@ Future<List<Profile>?> _getExploreProfiles({int paginationOffset = 0}) {
 }
 
 Future<bool> postLike(String nemesisId) {
-  return _req(http.post, "/nemesis/like/$nemesisId",
-      ok: (_) => true, err: (_) => false);
+  return _req(http.post, "/user/$nemesisId/like",
+    ok: (_) => true,
+		err: (_) => false
+	);
 }
 
 Future<bool> postDislike(String nemesisId) {
-  return _req(http.post, "/nemesis/dislike/$nemesisId",
-      ok: (_) => true, err: (_) => false);
+  return _req(http.post, "/user/$nemesisId/dislike",
+    ok: (_) => true,
+		err: (_) => false
+	);
 }
 
 Future<bool> popExploreProfile({required bool liked}) async {

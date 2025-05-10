@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme_manager.dart';
 import '../auth.dart';
-import 'login.dart';
+//import 'login.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -70,6 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
             label: const Text("Logout"),
             onPressed: () => signOut(),
           ),
+					SizedBox(height: 40),
         ],
       ),
     );
